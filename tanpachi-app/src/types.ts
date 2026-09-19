@@ -63,3 +63,65 @@ export type QuizSpinResult = {
 
 /** 1回転の演出フェーズ */
 export type SpinPhase = "idle" | "spinning" | "quiz" | "judging" | "result";
+
+/** 学習セッション1問分の解答記録 */
+export type SessionAnswer = {
+  wordId: string;
+  word: string;
+  phonetic: string;
+  meaning: string;
+  /** 選択した意味（未解答は null） */
+  selected: string | null;
+  correct: boolean;
+  /** 解答にかかった秒数 */
+  seconds: number;
+};
+
+/** 直近に完了した学習セッションの生データ（リザルト画面の入力） */
+export type LearnSessionResult = {
+  /** セッション識別子（自己ベスト記録の二重反映を防ぐ） */
+  id: string;
+  finishedAt: string; // ISO
+  answers: SessionAnswer[];
+  /** このセッションで獲得した玉 */
+  earnedBalls: number;
+  /** セッション開始時刻 (epoch ms) */
+  startedAt: number;
+};
+
+/** リザルト画面の表示ランク */
+export type ScoreRank = "極" | "秀" | "優" | "良";
+export type RankEnglish = "SSS" | "S" | "A" | "B";
+
+/** リザルト画面が必要とする全データ（既存 state + セッション記録から導出） */
+export type ResultView = {
+  accuracyRate: number;
+  correctCount: number;
+  totalCount: number;
+  score: number;
+  isNewRecord: boolean;
+  scoreRank: ScoreRank;
+  rankEnglish: RankEnglish;
+  evalTitle: string;
+  evalDescription: string;
+  /** 結果ごとの短い講評（次の一歩） */
+  nextStep: string;
+  heldBalls: number;
+  gainedBalls: number;
+  /** セッションの学習時間（秒） */
+  studyTimeSeconds: number;
+  goalMinutes: number;
+  todayAccumulatedSeconds: number;
+  streakDays: number;
+  masteredCount: number;
+  level: number;
+  /** 次のレベルまでの進捗 (%) */
+  expPercent: number;
+  /** 1回のパチンコプレイで消費する玉 */
+  spinCost: number;
+  words: SessionAnswer[];
+  /** 解答の速さ（1問あたり平均秒） */
+  averageSeconds: number;
+  /** 既存 state の通算正答率 (%) */
+  totalAccuracy: number;
+};

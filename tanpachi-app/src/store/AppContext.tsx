@@ -25,6 +25,10 @@ export type AppState = {
   streakDays: number;
   correct: number;
   answered: number;
+  /** これまでのセッションの最高スコア（自己ベスト判定に使う） */
+  bestScore: number;
+  /** 最後に記録したセッションID（同じセッションの二重加算を防ぐ） */
+  lastSessionId: string | null;
   earnedToday: number;
   wordStatus: Record<string, WordStatus>;
   history: BallHistoryEntry[];
@@ -36,6 +40,7 @@ type Action =
   | { type: "ANSWER"; wordId: string; correct: boolean; reward: number }
   | { type: "SPIN"; cost: number; win: number; jackpot: boolean }
   | { type: "SPIN_QUIZ"; result: QuizSpinResult }
+  | { type: "RECORD_SESSION"; sessionId: string; score: number; minutes: number }
   | { type: "TOGGLE_STAR"; wordId: string }
   | { type: "PURCHASE"; rewardId: string; cost: number }
   | { type: "RESET" };
@@ -65,6 +70,8 @@ export const initialState: AppState = {
   streakDays: 7,
   correct: 87,
   answered: 100,
+  bestScore: 0,
+  lastSessionId: null,
   earnedToday: 230,
   wordStatus: initialWordStatus(),
   history: [
@@ -161,6 +168,16 @@ function reducer(state: AppState, action: Action): AppState {
         ].slice(0, 50),
       };
     }
+    case "RECORD_SESSION": {
+      // 同じセッションを2度記録しない（StrictMode の再実行対策）
+      if (state.lastSessionId === action.sessionId) return state;
+      return {
+        ...state,
+        lastSessionId: action.sessionId,
+        bestScore: Math.max(state.bestScore, action.score),
+        todayMinutes: state.todayMinutes + action.minutes,
+      };
+    }
     case "TOGGLE_STAR": {
       const status = state.wordStatus[action.wordId] ?? { learned: false, weak: false, starred: false };
       return {
@@ -204,6 +221,8 @@ type Ctx = {
   spin: (cost: number, win: number, jackpot: boolean) => void;
   /** クイズ=抽選の1回転分をまとめて確定させる */
   spinQuiz: (result: QuizSpinResult) => void;
+  /** セッション終了を記録する（自己ベスト更新 + 本日の学習時間の加算） */
+  recordSession: (sessionId: string, score: number, minutes: number) => void;
   toggleStar: (wordId: string) => void;
   purchase: (rewardId: string, cost: number) => boolean;
   reset: () => void;
@@ -228,6 +247,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   );
   const spinQuiz = useCallback((result: QuizSpinResult) => dispatch({ type: "SPIN_QUIZ", result }), []);
+  const recordSession = useCallback(
+    (sessionId: string, score: number, minutes: number) =>
+      dispatch({ type: "RECORD_SESSION", sessionId, score, minutes }),
+    [],
+  );
   const toggleStar = useCallback((wordId: string) => dispatch({ type: "TOGGLE_STAR", wordId }), []);
   const purchase = useCallback(
     (rewardId: string, cost: number) => {
@@ -240,8 +264,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
 
   const value = useMemo(
-    () => ({ state, answer, spin, spinQuiz, toggleStar, purchase, reset }),
-    [state, answer, spin, spinQuiz, toggleStar, purchase, reset],
+    () => ({ state, answer, spin, spinQuiz, recordSession, toggleStar, purchase, reset }),
+    [state, answer, spin, spinQuiz, recordSession, toggleStar, purchase, reset],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -23,6 +23,49 @@ npm run build
 
 `main` ブランチへ変更を反映すると、GitHub Actionsが `tanpachi-app` をビルドしてGitHub Pagesへ公開します。
 
+## 学習結果画面(リザルト)
+
+学習セッション(10問)を終えると、結果画面へ遷移します。
+
+```
+/learn (10問目) → /learn/correct (最後の1問が正解のとき) → /result
+/learn (10問目) → 「結果を見る」ボタン (最後の1問が不正解のとき) → /result
+```
+
+### 表示内容とデータの出どころ
+
+ダミーデータは使わず、すべて実データから算出しています。
+
+| 表示 | 算出元 |
+| --- | --- |
+| 正解率 / 正解数 / 問題数 | セッション中の解答記録(`SessionAnswer[]`) |
+| スコア | 正解数 × 900 + パーフェクトボーナス 3,000 + 解答速度ボーナス |
+| 出題順の結果(10×2ブロック) | セッション中の各問の正誤 |
+| 所持玉 | `AppState.balls`(学習で増えた玉を含む) |
+| 今回獲得 | 正解数 × `LEARN_REWARD`(10玉) |
+| 学習時間 | セッションの実測経過時間(解答時間の合計〜+1問60秒を上限) |
+| 本日の累計 / 目標 | `AppState.todayMinutes` + 今回 / `AppState.goalMinutes` |
+| Lv / EXP / 連続学習日数 | `AppState.level` / `exp` / `streakDays` |
+| 評価ランク(極/秀/優/良) | 正解率から決定 |
+
+* スコアは「正解数」だけでなく「解答の速さ」も加味するため、意味のある指標になります。
+* 結果画面を開いた時点で、自己ベスト(`AppState.bestScore`)と本日の学習時間を
+  `recordSession()` で1回だけ記録します(同じセッションは二重加算しません)。
+* 単語の内訳から「間違えた単語をもう一度解く」を選ぶと、その単語だけで次の
+  セッションを組み立てます(`tanpachi:review` 経由)。
+* 玉の履歴は既存の `/history` 画面を再利用します。
+
+関連ファイル:
+
+- `src/pages/Result/Result.tsx` … 画面本体・ルーティング・遷移
+- `src/pages/Result/resultModel.ts` … 実データ → 表示モデルの変換(スコア計算・ランク判定)
+- `src/pages/Result/ResultHero.tsx` / `ResultBalls.tsx` / `ResultTime.tsx` / `ResultWords.tsx` / `ResultUser.tsx` / `ResultFooter.tsx`
+- `src/pages/Result/Result.css`
+- `src/hooks/useCountUp.ts` … スコア等のカウントアップ
+- `src/lib/random.ts` / `src/lib/speech.ts` … 画面間で共有する小道具
+- `src/data/learn.ts` … セッション定数と storage キー
+
+
 ## パチンコ英単語クイズ(1回転 = 1問)
 
 パチンコモードの「PUSH」ボタンを押すたびに、通常の抽選演出の代わりに

@@ -31,8 +31,8 @@ export function Correct() {
 
   const next = () => {
     if (finished) {
-      sessionStorage.removeItem("tanpachi:session");
-      navigate("/home", { replace: true });
+      // セッション終了 → 学習結果画面へ
+      navigate("/result", { replace: true });
     } else {
       navigate("/learn", { replace: true });
     }
@@ -58,7 +58,7 @@ export function Correct() {
         </section>
 
         <button className="btn-cta correct-next fade-up" style={{ animationDelay: "0.45s" }} onClick={next}>
-          {finished ? "ホームへ戻る" : "次の問題へ"}
+          {finished ? "結果を見る" : "次の問題へ"}
         </button>
       </div>
     </div>
