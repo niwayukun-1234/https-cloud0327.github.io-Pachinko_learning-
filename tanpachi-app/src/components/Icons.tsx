@@ -242,3 +242,44 @@ export const ChevronUp = ({ size, ...p }: P) => (
     <path d="M6 15l6-6 6 6" />
   </svg>
 );
+export const Search = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-3.5-3.5" />
+  </svg>
+);
+export const Filter = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M3 5h18l-7 8v6l-4 2v-8z" />
+  </svg>
+);
+export const ArrowUpDown = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M7 4v16M3.5 16.5L7 20l3.5-3.5" />
+    <path d="M17 20V4M13.5 7.5L17 4l3.5 3.5" />
+  </svg>
+);
+export const List = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+export const Lock = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <rect x="4" y="10" width="16" height="10" rx="2" />
+    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+  </svg>
+);
+export const Calendar = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M3 10h18M8 3v4M16 3v4" />
+  </svg>
+);
+export const SearchX = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-3.5-3.5" />
+    <path d="M9 9l4 4M13 9l-4 4" />
+  </svg>
+);
