@@ -1,8 +1,11 @@
 /* =========================================================
-   途中結果 (パチンコモード)
-   最終結果画面(Result.css)のカード・チップ・数値表現をそのまま流用し、
-   ここでは「ゲーム画面から開くバー」と「モーダル内レイアウト」の
-   ための最小限のスタイルだけを足す。
+   途中結果 (パチンコモード) — 仕上げブラッシュアップ版
+
+   - 既存の Result.css のクラスを流用しつつ、本画面で必要な
+     「日本語文言の折り返し」「情報階層の整理」「パチンコ台の
+      液晶画面 / HUD 的な質感」だけを上書きで足す
+   - 既存の Result.css(最終結果画面)は一切変更しない
+   - ゲームロジック・state・リザルト計算式は触らない
    ========================================================= */
 
 /* ---------- ゲーム画面から途中結果を開くバー ---------- */
@@ -49,121 +52,694 @@
   z-index: 50;
 }
 
-.p-modal .r-modal-card {
+/* モーダルカード本体(360px上限 / 全体は縦flex) */
+.p-card {
+  width: 100%;
   max-width: 360px;
+  max-height: 100%;
+  background:
+    linear-gradient(180deg, #14151e 0%, #0d0d13 100%);
+  border-color: #302816;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: result-fade 0.22s ease both;
 }
 
+/* ---------- 見切れ修正:日本語の折り返しを許可(詳細度で上書き) ---------- */
+/* Result.css の .r-hero-eval-text .title / .desc は white-space:nowrap と
+   text-overflow:ellipsis が指定されており、390px幅で14文字のタイトルが
+   必ず省略される。これが本画面での見切れの直接原因。
+   → 同じクラス名でもモーダル配下だけは2行まで自然に折り返させる */
+.p-body .r-hero-eval-text .title,
+.p-body .r-hero-eval-text .desc {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* ---------- ヘッダー:ゲーム画面の「上枠」風 ---------- */
+.p-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 14px 11px 14px;
+  background:
+    linear-gradient(180deg, #1f1008 0%, #15100a 60%, #100c08 100%);
+  border-bottom: 1.5px solid #6b521d;
+  box-shadow:
+    inset 0 1px 0 rgba(245, 197, 66, 0.18),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.p-head::after {
+  /* 上端のゴールドの細いライン(液晶の縁) */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245, 197, 66, 0.45), transparent);
+}
+
+.p-head-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.p-head-bar .deco {
+  font-size: 10px;
+  color: var(--gold);
+  opacity: 0.7;
+}
+
+.p-head-bar .head-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.p-head-bar .head-title svg {
+  color: var(--gold-2);
+}
+
+.p-head-bar .head-title b {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #fff;
+  text-shadow: 0 0 6px rgba(245, 197, 66, 0.35);
+}
+
+/* 「×」をパチンコ台のコントローラー風に */
 .p-close {
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
   border-radius: 50%;
-  color: #9ca3af;
+  color: #c3c6d2;
+  background: #1a1c28;
+  border: 1px solid #2a2e3d;
   flex-shrink: 0;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.p-close:hover {
-  background: rgba(255, 255, 255, 0.06);
+.p-close:hover,
+.p-close:focus-visible {
   color: #fff;
+  background: #232636;
+  border-color: #383c52;
+  outline: none;
 }
 
-/* モーダル内の本体(はみ出しはここだけスクロールさせる) */
+.p-close:active {
+  transform: scale(0.94);
+}
+
+/* ---------- 本体(スクロール領域) ---------- */
 .p-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px;
+  padding: 11px 12px 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   scrollbar-width: thin;
 }
 
-/* 既存リザルトの2カラムを、モーダル幅に合わせて少しだけ詰める */
-.p-body .r-metric {
-  padding: 12px;
+/* ---------- 評価パネル:ランク+評価文+次の一手 ---------- */
+.p-grade {
+  background:
+    linear-gradient(180deg, rgba(245, 197, 66, 0.06) 0%, rgba(0, 0, 0, 0) 40%),
+    linear-gradient(180deg, #181922 0%, #111218 100%);
+  border: 1px solid #5e4a1c;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.12);
+  padding: 10px 12px 11px;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.p-body .r-metric-value .num {
-  font-size: 26px;
-}
-
-/* 数値の行(正解 / 進捗 / 所持玉 / 学習時間) */
-.p-row {
+.p-grade-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 9px 0;
-  border-bottom: 1px solid #232532;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #2b271d;
 }
 
-.p-row:first-child {
-  padding-top: 0;
-}
-
-.p-row:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.p-row .k {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #9ca3af;
-  min-width: 0;
-}
-
-.p-row .k svg {
-  color: #e5a93c;
-  flex-shrink: 0;
-}
-
-.p-row .v {
-  font-family: var(--font-num);
-  font-size: 18px;
+.p-grade-strip .tag {
+  font-size: 10px;
   font-weight: 700;
-  color: #fff;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.16em;
+  color: #e5a93c;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.p-row .v .u {
-  margin-left: 3px;
-  font-family: var(--font);
-  font-size: 10px;
-  font-weight: 500;
-  color: #8e93a6;
+.p-grade-strip .q {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffd058;
+  background: #241708;
+  border: 1px solid #78541c;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
-.p-row .v.ok {
+.p-grade-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.p-grade-rank {
+  flex-shrink: 0;
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.p-grade-rank .k {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  font-size: 24px;
+  font-weight: 900;
+  font-family: var(--font-zen);
+  line-height: 1;
+  color: #fff2be;
+  background: linear-gradient(180deg, #b31929, #610811);
+  border: 1px solid rgba(255, 143, 143, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.p-grade-rank .en {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #f5c542;
+  background: #2e230e;
+  border: 1px solid #6b521d;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.p-grade-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.p-grade-title {
+  font-family: var(--font-zen);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #fff;
+  letter-spacing: 0.01em;
+  /* 多言語タイトル / 長い評価名でもカード内で必要分だけ自然に折り返す */
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.p-grade-desc {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #b6b9cb;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.p-grade-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #2b271d;
+}
+
+.p-grade-foot .p-grade-next {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #9ca3af;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+.p-grade-foot .r-chip {
+  flex-shrink: 0;
+}
+
+/* ---------- Hero Stats:主要4指標を一瞬で見せる帯 ---------- */
+.p-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-radius: 11px;
+  background: #131419;
+  border: 1px solid #272936;
+  overflow: hidden;
+}
+
+.p-hs-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 4px 8px;
+  text-align: center;
+  border-right: 1px solid #232532;
+  min-width: 0;
+}
+
+.p-hs-cell:last-child {
+  border-right: none;
+}
+
+.p-hs-cell .p-hs-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #aab0c2;
+  white-space: nowrap;
+}
+
+.p-hs-cell .p-hs-num {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.p-hs-cell .p-hs-num .u {
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  color: #8e93a6;
+  margin-left: 1px;
+}
+
+.p-hs-cell.ok .p-hs-num {
   color: #34d399;
 }
 
-.p-row .v.ng {
+.p-hs-cell.ng .p-hs-num {
   color: #f87171;
 }
 
-/* ---------- レスポンシブ ---------- */
+/* 保留玉セル:玉の表現を取り入れて視認性を上げる */
+.p-hs-cell.ball .p-hs-num {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.p-hs-cell.ball .r-ball {
+  width: 12px;
+  height: 12px;
+  background:
+    radial-gradient(circle at 35% 30%, #fff 0%, #dfe2ea 18%, #8a8f9c 45%, #3a3d47 75%, #14151a 100%);
+  box-shadow:
+    0 0 0 1px rgba(245, 197, 66, 0.18),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+/* ---------- 進捗カード:ゲージ+補助情報リスト ---------- */
+.p-progress {
+  background: #13141a;
+  border: 1px solid #282a36;
+  border-radius: 12px;
+  padding: 11px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.p-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.p-progress-head .t {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #b4b7c5;
+  font-family: var(--font-zen);
+  white-space: nowrap;
+}
+
+.p-progress-head .note {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.p-progress-head .note svg {
+  color: #f97316;
+}
+
+.p-progress-gauge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* ゲージ本体:既存の .r-gauge を「枠無し・よりHUD的」に */
+.p-progress-gauge .r-gauge {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  border-radius: 3px;
+  background: #1a1c26;
+  overflow: hidden;
+  border: 1px solid #232532;
+}
+
+.p-progress-gauge .r-gauge > i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, #d97706, #fbbf24);
+  transition: width 0.5s ease;
+}
+
+.p-gauge-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.p-gauge-val .u {
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  color: #8e93a6;
+  margin-left: 1px;
+}
+
+.p-progress-meta {
+  font-size: 11px;
+  font-weight: 500;
+  color: #b6b9cb;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.p-progress-meta b {
+  color: #ffd058;
+  font-weight: 700;
+}
+
+.p-progress-rows {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid #232532;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid #232532;
+  min-width: 0;
+}
+
+.p-progress-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.p-progress-row .k {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #9ca3af;
+  min-width: 0;
+}
+
+.p-progress-row .k svg {
+  color: #e5a93c;
+  flex-shrink: 0;
+}
+
+.p-progress-row .v {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.p-progress-row .v .u {
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  color: #8e93a6;
+}
+
+.p-progress-row .v.gold {
+  background: linear-gradient(180deg, #fff2be 0%, #f6c543 45%, #c88f1a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- フッター:ゲームに戻る ---------- */
+.p-foot {
+  flex-shrink: 0;
+  padding: 10px 12px;
+  background:
+    linear-gradient(180deg, rgba(245, 197, 66, 0.06), rgba(0, 0, 0, 0)) ,
+    #111218;
+  border-top: 1px solid #232636;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.p-back-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: var(--font-zen);
+  letter-spacing: 0.04em;
+  color: #fff;
+  background:
+    linear-gradient(180deg, #ff5c6b 0%, #d61a2b 50%, #7a0a14 100%);
+  border: 1.5px solid #ff4d61;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5),
+    0 3px 0 #4a0410,
+    0 6px 14px rgba(189, 18, 36, 0.32);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.p-back-btn:hover {
+  background:
+    linear-gradient(180deg, #ff7080 0%, #e02232 50%, #8a0d1d 100%);
+}
+
+.p-back-btn:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    0 1px 0 #4a0410;
+}
+
+.p-back-btn .arrow {
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.p-foot-note {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #787e91;
+  line-height: 1.4;
+}
+
+/* ---------- レスポンシブ ----------
+   - 320px: 4列のHero Stats を 2x2 に切替(数字潰れ防止)
+   - 430px: ボトルネックの3列 → モーダル最大幅制限を少し広げて本体内容の余白を確保
+   - 360px付近は基本サイズで整う(Ultra-thin mobile)
+*/
 @media (max-width: 359px) {
   .p-outcome-bar .note {
     display: none;
   }
 
-  .p-body .r-metric {
+  .p-card {
+    border-radius: 12px;
+  }
+
+  .p-head {
+    padding: 10px 12px;
+  }
+
+  .p-body {
+    padding: 10px 10px 10px;
+    gap: 9px;
+  }
+
+  .p-grade {
+    padding: 9px 10px 10px;
+  }
+
+  .p-grade-rank {
+    width: 40px;
+  }
+
+  .p-grade-rank .k {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    border-radius: 10px;
+  }
+
+  .p-grade-title {
+    font-size: 13px;
+  }
+
+  .p-hs-cell {
+    padding: 8px 3px 7px;
+  }
+
+  .p-hs-cell .p-hs-label {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+
+  .p-hs-cell .p-hs-num {
+    font-size: 16px;
+  }
+
+  .p-hs-cell.ball .r-ball {
+    width: 10px;
+    height: 10px;
+  }
+
+  .p-hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* 2x2に切り替えるため、2列目にも境界線を入れる */
+  .p-hero-stats .p-hs-cell:nth-child(odd) {
+    border-right: 1px solid #232532;
+  }
+
+  .p-hero-stats .p-hs-cell:nth-child(even) {
+    border-right: none;
+  }
+
+  /* 2段目の境界 */
+  .p-hero-stats .p-hs-cell:nth-child(1),
+  .p-hero-stats .p-hs-cell:nth-child(2) {
+    border-bottom: 1px solid #232532;
+  }
+
+  .p-progress {
     padding: 10px;
   }
 
-  .p-body .r-metric-value .num {
-    font-size: 21px;
+  .p-progress-row .v {
+    font-size: 14px;
   }
 
-  .p-row .v {
-    font-size: 16px;
+  .p-back-btn {
+    padding: 11px 12px;
+    font-size: 12.5px;
+  }
+}
+
+@media (min-width: 410px) {
+  /* 390px前後の標準スマホで自然な見え方にする */
+  .p-card {
+    max-width: 372px;
+  }
+}
+
+@media (max-height: 680px) {
+  /* 背の低い端末:モーダルカードの縦が窮屈になるため内側を少し詰める */
+  .p-grade-body .p-grade-title {
+    font-size: 13.5px;
+  }
+
+  .p-grade-foot {
+    padding-top: 6px;
+  }
+
+  .p-hs-cell {
+    padding: 7px 4px 6px;
   }
 }

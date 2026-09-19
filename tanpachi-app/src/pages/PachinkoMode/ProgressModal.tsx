@@ -35,7 +35,7 @@ type Props = {
  *   (正解数 = セッションの解答記録 / 所持玉 = AppState.balls)
  * - 学習時間はフックが保持する開始時刻からの経過時間なので、
  *   開閉してもリセットも停止もしない
- * - デザインは最終結果画面の CSS クラス(r-card / r-metric / r-chip 等)を流用する
+ * - 評価ランク・スコア・正答率チップは最終結果画面と同じロジックを再利用する
  */
 export function ProgressModal({
   open,
@@ -69,10 +69,12 @@ export function ProgressModal({
     const answered = answers.length;
     const correctCount = answers.filter((a) => a.correct).length;
     const wrongCount = answered - correctCount;
-    // 正答率・スコアは最終結果画面と同じ既存ロジックを再利用する
+    // 正答率・スコアは最終結果画面と同じ既存ロジックを再利用する(結果整合性を担保)
     const rate = accuracy({ correct: correctCount, answered });
     const score = calcScore(answers);
     const g = grade(rate, answered);
+    const progress = total === 0 ? 0 : Math.min(100, Math.round((drawn / total) * 100));
+    const avgSeconds = answered === 0 ? 0 : answers.reduce((s, a) => s + a.seconds, 0) / answered;
     return {
       answered,
       correctCount,
@@ -81,9 +83,8 @@ export function ProgressModal({
       score,
       g,
       chip: accuracyChip(rate),
-      // 進捗は「今の周回で何問目か」を出題数から求める
-      progress: total === 0 ? 0 : Math.min(100, Math.round((drawn / total) * 100)),
-      avgSeconds: answered === 0 ? 0 : answers.reduce((s, a) => s + a.seconds, 0) / answered,
+      progress,
+      avgSeconds,
     };
   }, [answers, drawn, total]);
 
@@ -92,173 +93,146 @@ export function ProgressModal({
   return (
     <div className="r-modal p-modal" onClick={onClose} role="presentation">
       <div
-        className="r-modal-card r-card"
+        className="r-modal-card r-card p-card"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="途中結果"
       >
-        <div className="r-modal-head">
-          <span className="l">
-            <BookOpen size={16} />
-            <h3>途中結果</h3>
-          </span>
-          <button type="button" className="p-close" onClick={onClose} aria-label="ゲームに戻る">
-            <X size={14} />
+        {/* ヘッダー: ゲーム画面らしい上枠(タイトル + 閉じる) */}
+        <div className="p-head">
+          <div className="p-head-bar">
+            <span className="deco">❮</span>
+            <span className="head-title">
+              <BookOpen size={14} />
+              <b className="rz">途中結果</b>
+            </span>
+            <span className="deco">❯</span>
+          </div>
+          <button
+            type="button"
+            className="p-close"
+            onClick={onClose}
+            aria-label="閉じる"
+          >
+            <X size={16} strokeWidth={2.5} />
           </button>
         </div>
 
-        <div className="p-body">
-          {/* 正解率とスコア: 最終結果画面のヒーローをそのまま流用 */}
-          <section className="r-card-gold" aria-label="現在の成績">
-            <div className="r-hero-top" />
+        {/* 評価パネル: ランクと評価メッセージを1セットで自然に折り返す */}
+        <section className="p-grade" aria-label="現在の成績">
+          <div className="p-grade-strip">
+            <span className="tag">【 途中結果 】</span>
+            <span className="rn q">第{drawn}問 / 全{total}問</span>
+          </div>
 
-            <div className="r-hero-head">
-              <div className="r-hero-tag-row">
-                <div className="r-hero-tag">
-                  <span className="t rz">【 途中結果 】</span>
-                </div>
-                <div className="r-gain-pill">
-                  <b className="rn">
-                    第{drawn}問 / 全{total}問
-                  </b>
-                </div>
-              </div>
-
-              <div className="r-hero-rank-row">
-                <div className="r-rank-stamp">
-                  <span>{view.g.scoreRank}</span>
-                </div>
-                <div className="r-hero-eval">
-                  <div className="r-hero-eval-text">
-                    <div className="title">{view.g.evalTitle}</div>
-                    <div className="desc">{view.g.evalDescription}</div>
-                  </div>
-                  <span className="r-rank-en rn">RANK {view.g.rankEnglish}</span>
-                </div>
-              </div>
+          <div className="p-grade-body">
+            <div className="p-grade-rank">
+              <span className="k">{view.g.scoreRank}</span>
+              <span className="en rn">RANK {view.g.rankEnglish}</span>
             </div>
-
-            <div className="r-hero-grid">
-              <div className="r-metric">
-                <div>
-                  <div className="r-metric-head">
-                    <span className="label">正解率</span>
-                    {/* 出し分けは最終結果画面と同じ既存ロジックを再利用する */}
-                    <span className={`r-chip ${view.chip.cls}`}>
-                      <CheckCircle size={10} />
-                      {view.chip.label}
-                    </span>
-                  </div>
-                  <div className="r-metric-value">
-                    <span className="num rn">{view.rate}</span>
-                    <span className="unit rn">%</span>
-                  </div>
-                  <div className="r-metric-sub">
-                    <b className="rn">{view.correctCount}</b>
-                    <span className="slash">/</span>
-                    <span className="rn">{view.answered}</span>問 正解
-                  </div>
-                </div>
-              </div>
-
-              <div className="r-metric">
-                <div>
-                  <div className="r-metric-head">
-                    <span className="label">スコア</span>
-                    <span className="r-chip gold">SCORE</span>
-                  </div>
-                  <div className="r-metric-value">
-                    <span className="num gold rn">{view.score.toLocaleString()}</span>
-                    <span className="unit dim rn">pt</span>
-                  </div>
-                  <div className="r-metric-sub">通算正答率 {totalAccuracy}%</div>
-                </div>
-              </div>
+            <div className="p-grade-text">
+              <div className="p-grade-title">{view.g.evalTitle}</div>
+              <div className="p-grade-desc">{view.g.evalDescription}</div>
             </div>
-          </section>
+          </div>
 
-          {/* 正解 / 不正解 / 進捗 / 所持玉 / 学習時間 */}
-          <section className="r-card r-widget" aria-label="現在の進捗">
-            <div className="r-widget-head">
-              <div className="r-widget-title">
-                <span className="t">現在の進捗</span>
-              </div>
-              <span className="r-widget-note">
-                <Clock size={13} />
-                <span>1問あたり {view.avgSeconds.toFixed(1)}秒</span>
-              </span>
-            </div>
+          <div className="p-grade-foot">
+            <span className={`r-chip ${view.chip.cls}`}>
+              <CheckCircle size={10} />
+              {view.chip.label}
+            </span>
+            <span className="p-grade-next">{view.g.nextStep}</span>
+          </div>
+        </section>
 
-            <div className="p-row">
+        {/* ヒーロー統計: 4つの主要数字を視認性高く並べて優劣を一瞬で見せる */}
+        <section className="p-hero-stats" aria-label="主要ステータス">
+          <div className="p-hs-cell ok">
+            <span className="p-hs-label">
+              <CheckCircle size={13} /> 正解
+            </span>
+            <span className="p-hs-num rn">
+              {view.correctCount}
+              <span className="u">問</span>
+            </span>
+          </div>
+          <div className="p-hs-cell ng">
+            <span className="p-hs-label">
+              <XCircle size={13} /> 不正解
+            </span>
+            <span className="p-hs-num rn">
+              {view.wrongCount}
+              <span className="u">問</span>
+            </span>
+          </div>
+          <div className="p-hs-cell">
+            <span className="p-hs-label">正解率</span>
+            <span className="p-hs-num rn">
+              {view.rate}
+              <span className="u">%</span>
+            </span>
+          </div>
+          <div className="p-hs-cell ball">
+            <span className="p-hs-label">保留玉</span>
+            <span className="p-hs-num rn">
+              <span className="r-ball xs" aria-hidden />
+              {balls.toLocaleString()}
+              <span className="u">玉</span>
+            </span>
+          </div>
+        </section>
+
+        {/* 進捗詳細: 補助情報を1枚のカードに整理(進捗メーターを含む) */}
+        <section className="p-progress" aria-label="現在の進捗">
+          <div className="p-progress-head">
+            <span className="t">現在の進捗</span>
+            <span className="note">
+              <Clock size={12} />
+              <span>1問 {view.avgSeconds.toFixed(1)}秒</span>
+            </span>
+          </div>
+
+          <div className="p-progress-gauge" aria-hidden>
+            <span className="r-gauge" >
+              <i style={{ width: `${view.progress}%` }} />
+            </span>
+            <span className="p-gauge-val rn">
+              {view.progress}
+              <span className="u">%</span>
+            </span>
+          </div>
+          <div className="p-progress-meta rn">
+            回答 {view.answered} / {total} 問　・　連続正解 <b>{streak}</b> 連
+          </div>
+
+          <div className="p-progress-rows">
+            <div className="p-progress-row">
               <span className="k">
-                <CheckCircle size={14} /> 正解
-              </span>
-              <span className="v ok rn">
-                {view.correctCount}
-                <span className="u">問</span>
-              </span>
-            </div>
-
-            <div className="p-row">
-              <span className="k">
-                <XCircle size={14} /> 不正解
-              </span>
-              <span className="v ng rn">
-                {view.wrongCount}
-                <span className="u">問</span>
-              </span>
-            </div>
-
-            <div className="p-row">
-              <span className="k">回答数 / 総問題数</span>
-              <span className="v rn">
-                {view.answered}
-                <span className="u">/ {total} 問</span>
-              </span>
-            </div>
-
-            <div className="p-row">
-              <span className="k">現在の進捗</span>
-              <span className="v rn">
-                {view.progress}
-                <span className="u">%（{drawn}/{total}）</span>
-              </span>
-            </div>
-
-            <div className="r-gauge" aria-hidden>
-              <span style={{ width: `${view.progress}%` }} />
-            </div>
-
-            <div className="p-row" style={{ marginTop: 10 }}>
-              <span className="k">所持玉（保留玉）</span>
-              <span className="v rn">
-                {balls.toLocaleString()}
-                <span className="u">玉</span>
-              </span>
-            </div>
-
-            <div className="p-row">
-              <span className="k">連続正解</span>
-              <span className="v rn">
-                {streak}
-                <span className="u">連</span>
-              </span>
-            </div>
-
-            <div className="p-row">
-              <span className="k">
-                <Clock size={14} /> 学習時間
+                <Clock size={13} /> 学習時間
               </span>
               <span className="v rn">{formatDuration(elapsedSeconds)}</span>
             </div>
-          </section>
-        </div>
+            <div className="p-progress-row">
+              <span className="k">スコア</span>
+              <span className="v gold rn">{view.score.toLocaleString()}<span className="u">pt</span></span>
+            </div>
+            <div className="p-progress-row">
+              <span className="k">通算正答率</span>
+              <span className="v rn">{totalAccuracy}<span className="u">%</span></span>
+            </div>
+          </div>
+        </section>
 
-        <div className="r-modal-foot">
-          <button type="button" onClick={onClose}>
-            ゲームに戻る
+        {/* フッター: ゲームへ戻る(閉じるだけ・状態は変えない) */}
+        <div className="p-foot">
+          <button type="button" className="p-back-btn" onClick={onClose}>
+            <span className="arrow">⟵</span>
+            <span>ゲームに戻る</span>
           </button>
+          <span className="p-foot-note">
+            ※ 表示後にゲームはそのまま続行されます
+          </span>
         </div>
       </div>
     </div>
