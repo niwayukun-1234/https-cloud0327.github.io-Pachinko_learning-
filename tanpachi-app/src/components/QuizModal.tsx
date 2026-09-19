@@ -74,7 +74,7 @@ export function QuizModal({
         {isJudged && judgement.correct && <div className="quiz-flash" aria-hidden />}
 
         <div className="quiz-inner">
-          {/* 上枠: LEDチェイサー + ブランド + 7セグREEL */}
+          {/* 上枠: LEDチェイサー + ブランド + 7セグREEL + 戦績 */}
           <div className="quiz-bezel">
             <div className="quiz-leds" aria-hidden>
               {Array.from({ length: 14 }, (_, i) => (
@@ -93,6 +93,14 @@ export function QuizModal({
                 ))}
               </span>
             </div>
+            <div className="quiz-bezel-meta">
+              <span>
+                連続正解 <b>{streak}</b> 連
+              </span>
+              <span>
+                残り <b>{remaining}</b> / {total} 問
+              </span>
+            </div>
           </div>
 
           {/* 問題 */}
@@ -107,6 +115,32 @@ export function QuizModal({
             <h2 className="quiz-word gold-text">{question.word}</h2>
             <p className="quiz-prompt">この単語の意味を選べ</p>
           </div>
+
+          {/* 判定バナー(回答直後。4択の上に差し込むので選択肢が隠れない) */}
+          {isJudged && (
+            <div className={`quiz-verdict ${judgement.correct ? "win" : "lose"}`}>
+              {judgement.correct ? (
+                <>
+                  <span className="quiz-verdict-title pop">
+                    <CheckCircle size={26} />
+                    正解!
+                  </span>
+                  <span className="quiz-verdict-reward pop">
+                    <Zap size={18} />+{judgement.reward}玉
+                  </span>
+                  {judgement.jackpot && <em className="quiz-verdict-fever pop">FEVER BONUS!</em>}
+                </>
+              ) : (
+                <>
+                  <span className="quiz-verdict-title lose pop">
+                    <XCircle size={26} />
+                    不正解…
+                  </span>
+                  <span className="quiz-verdict-answer">正解は「{question.correctAnswer}」</span>
+                </>
+              )}
+            </div>
+          )}
 
           {/* 4択(入賞口) */}
           <div className="quiz-choices">
@@ -133,42 +167,7 @@ export function QuizModal({
               );
             })}
           </div>
-
-          <div className="quiz-meta">
-            <span>
-              連続正解 <b>{streak}</b>
-            </span>
-            <span>
-              残り <b>{remaining}</b> / {total}問
-            </span>
-          </div>
         </div>
-
-        {/* 判定フラッシュ */}
-        {isJudged && (
-          <div className={`quiz-verdict ${judgement.correct ? "win" : "lose"}`}>
-            {judgement.correct ? (
-              <>
-                <span className="quiz-verdict-title pop">
-                  <CheckCircle size={22} />
-                  正解!
-                </span>
-                <span className="quiz-verdict-reward pop">
-                  <Zap size={15} />+{judgement.reward}玉
-                </span>
-                {judgement.jackpot && <em className="quiz-verdict-fever pop">FEVER BONUS!</em>}
-              </>
-            ) : (
-              <>
-                <span className="quiz-verdict-title lose pop">
-                  <XCircle size={22} />
-                  不正解…
-                </span>
-                <span className="quiz-verdict-answer">正解は「{question.correctAnswer}」</span>
-              </>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
