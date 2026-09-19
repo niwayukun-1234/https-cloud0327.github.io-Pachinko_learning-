@@ -1,4 +1,29 @@
-# React + TypeScript + Vite
+# Tanpachi App
+
+英単語学習とパチンコのゲーム性を組み合わせた学習アプリです。
+
+## チーム向け公開URL
+
+GitHub Pagesを有効にしてデプロイすると、次のURLから利用できます。
+
+https://cloud0327.github.io/Pachinko_learning/
+
+## ローカル起動
+
+```bash
+npm ci
+npm run dev
+```
+
+## 本番ビルド
+
+```bash
+npm run build
+```
+
+`main` ブランチへ変更を反映すると、GitHub Actionsが `tanpachi-app` をビルドしてGitHub Pagesへ公開します。
+
+## 技術構成
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
