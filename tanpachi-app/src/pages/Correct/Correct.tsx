@@ -25,8 +25,8 @@ const FLOOD_MAX = 200;
 // 3連続正解（音声再生）時は上から50個の玉が降る
 const TRIPLE_BALLS = 50;
 // 音声が取れなかった場合の保険待ち時間 (ms)
-const KAKUHEN_FALLBACK_MS = 11000;
-const TRIPLE_FALLBACK_MS = 17000;
+const KAKUHEN_FALLBACK_MS = 17000;
+const TRIPLE_FALLBACK_MS = 11000;
 
 /** 連続正解の回数を 1〜5 の演出レベルに変換 */
 function fxTier(combo: number, kakuhen: boolean) {
