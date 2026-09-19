@@ -10,6 +10,44 @@
   overflow: hidden;
 }
 
+/* 確変中は画面全体がレインボーに */
+.learn-rainbow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 0, 80, 0.4),
+    rgba(255, 154, 0, 0.4),
+    rgba(255, 240, 0, 0.4),
+    rgba(74, 222, 128, 0.4),
+    rgba(56, 189, 248, 0.4),
+    rgba(167, 139, 250, 0.4)
+  );
+  background-size: 300% 300%;
+  animation:
+    learn-rainbow-flow 3s linear infinite,
+    learn-rainbow-hue 2.4s linear infinite;
+}
+
+@keyframes learn-rainbow-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes learn-rainbow-hue {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
 .learn .header {
   position: relative;
   z-index: 1;

@@ -4,6 +4,7 @@ export type Word = {
   phonetic: string;
   meaning: string;
   choices: string[]; // includes the correct meaning
+  difficulty?: "normal" | "hard";
 };
 
 export type WordStatus = {

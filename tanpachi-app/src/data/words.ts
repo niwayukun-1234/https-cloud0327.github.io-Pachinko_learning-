@@ -7,6 +7,7 @@ export const WORDS: Word[] = [
     phonetic: "[ˈtʃælɪndʤ]",
     meaning: "挑戦する",
     choices: ["挑戦する", "許す", "理解する", "失う"],
+    difficulty: "normal",
   },
   {
     id: "opportunity",
@@ -14,6 +15,7 @@ export const WORDS: Word[] = [
     phonetic: "[ˌɒpərˈtjuːnəti]",
     meaning: "機会",
     choices: ["機会", "結果", "習慣", "目的"],
+    difficulty: "hard",
   },
   {
     id: "perspective",
@@ -21,6 +23,7 @@ export const WORDS: Word[] = [
     phonetic: "[pərˈspektɪv]",
     meaning: "視点",
     choices: ["視点", "約束", "経験", "感情"],
+    difficulty: "hard",
   },
   {
     id: "motivation",
@@ -28,6 +31,7 @@ export const WORDS: Word[] = [
     phonetic: "[ˌmoʊtɪˈveɪʃn]",
     meaning: "動機",
     choices: ["動機", "証拠", "環境", "義務"],
+    difficulty: "normal",
   },
   {
     id: "achieve",
@@ -35,6 +39,7 @@ export const WORDS: Word[] = [
     phonetic: "[əˈtʃiːv]",
     meaning: "達成する",
     choices: ["達成する", "避ける", "比較する", "疑う"],
+    difficulty: "normal",
   },
   {
     id: "persist",
@@ -42,6 +47,7 @@ export const WORDS: Word[] = [
     phonetic: "[pərˈsɪst]",
     meaning: "粘り強く続ける",
     choices: ["粘り強く続ける", "諦める", "無視する", "急ぐ"],
+    difficulty: "hard",
   },
   {
     id: "improve",
@@ -49,6 +55,7 @@ export const WORDS: Word[] = [
     phonetic: "[ɪmˈpruːv]",
     meaning: "改善する",
     choices: ["改善する", "破壊する", "延期する", "禁止する"],
+    difficulty: "normal",
   },
   {
     id: "consistent",
@@ -56,5 +63,55 @@ export const WORDS: Word[] = [
     phonetic: "[kənˈsɪstənt]",
     meaning: "一貫した",
     choices: ["一貫した", "不安定な", "複雑な", "曖昧な"],
+    difficulty: "hard",
+  },
+  // ---- 難問（確変中に多く出題される） ----
+  {
+    id: "inevitable",
+    word: "inevitable",
+    phonetic: "[ɪnˈevɪtəbl]",
+    meaning: "避けられない",
+    choices: ["避けられない", "不必要な", "疑わしい", "一時的な"],
+    difficulty: "hard",
+  },
+  {
+    id: "ambiguous",
+    word: "ambiguous",
+    phonetic: "[æmˈbɪɡjuəs]",
+    meaning: "曖昧な",
+    choices: ["曖昧な", "明白な", "正確な", "簡潔な"],
+    difficulty: "hard",
+  },
+  {
+    id: "significant",
+    word: "significant",
+    phonetic: "[sɪɡˈnɪfɪkənt]",
+    meaning: "重要な",
+    choices: ["重要な", "微小な", "偶然の", "派生的な"],
+    difficulty: "hard",
+  },
+  {
+    id: "contribute",
+    word: "contribute",
+    phonetic: "[kənˈtrɪbjuːt]",
+    meaning: "貢献する",
+    choices: ["貢献する", "妨げる", "要求する", "拒否する"],
+    difficulty: "hard",
+  },
+  {
+    id: "essential",
+    word: "essential",
+    phonetic: "[ɪˈsenʃl]",
+    meaning: "不可欠な",
+    choices: ["不可欠な", "装飾的な", "贅沢な", "予備の"],
+    difficulty: "hard",
+  },
+  {
+    id: "efficient",
+    word: "efficient",
+    phonetic: "[ɪˈfɪʃnt]",
+    meaning: "効率的な",
+    choices: ["効率的な", "乱雑な", "高価な", "不確かな"],
+    difficulty: "hard",
   },
 ];
