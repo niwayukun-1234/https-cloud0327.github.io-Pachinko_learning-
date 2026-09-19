@@ -1,0 +1,169 @@
+/* =========================================================
+   途中結果 (パチンコモード)
+   最終結果画面(Result.css)のカード・チップ・数値表現をそのまま流用し、
+   ここでは「ゲーム画面から開くバー」と「モーダル内レイアウト」の
+   ための最小限のスタイルだけを足す。
+   ========================================================= */
+
+/* ---------- ゲーム画面から途中結果を開くバー ---------- */
+.p-outcome-bar {
+  margin: 6px 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(42, 10, 16, 0.92), rgba(14, 6, 9, 0.92));
+  border: 1px solid var(--gold-dark);
+  color: var(--gold-2);
+}
+
+.p-outcome-bar .l {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.p-outcome-bar .l svg {
+  flex-shrink: 0;
+}
+
+.p-outcome-bar .note {
+  font-size: 10px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---------- モーダル ---------- */
+/* 親側の `.pachi > *` は同じ詳細度(0,1,0)で position: relative / z-index: 1 を
+   当ててくるため、読み込み順に依存せず必ず全画面オーバーレイとして
+   表示されるよう詳細度を上げておく(QuizModal と同じ理由)。 */
+.p-modal.p-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+}
+
+.p-modal .r-modal-card {
+  max-width: 360px;
+}
+
+.p-close {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.p-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+/* モーダル内の本体(はみ出しはここだけスクロールさせる) */
+.p-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+}
+
+/* 既存リザルトの2カラムを、モーダル幅に合わせて少しだけ詰める */
+.p-body .r-metric {
+  padding: 12px;
+  gap: 8px;
+}
+
+.p-body .r-metric-value .num {
+  font-size: 26px;
+}
+
+/* 数値の行(正解 / 進捗 / 所持玉 / 学習時間) */
+.p-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid #232532;
+}
+
+.p-row:first-child {
+  padding-top: 0;
+}
+
+.p-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.p-row .k {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+  min-width: 0;
+}
+
+.p-row .k svg {
+  color: #e5a93c;
+  flex-shrink: 0;
+}
+
+.p-row .v {
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.p-row .v .u {
+  margin-left: 3px;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 500;
+  color: #8e93a6;
+}
+
+.p-row .v.ok {
+  color: #34d399;
+}
+
+.p-row .v.ng {
+  color: #f87171;
+}
+
+/* ---------- レスポンシブ ---------- */
+@media (max-width: 359px) {
+  .p-outcome-bar .note {
+    display: none;
+  }
+
+  .p-body .r-metric {
+    padding: 10px;
+  }
+
+  .p-body .r-metric-value .num {
+    font-size: 21px;
+  }
+
+  .p-row .v {
+    font-size: 16px;
+  }
+}

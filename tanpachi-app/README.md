@@ -159,16 +159,37 @@ export const QUIZ_SPIN_CONFIG: QuizSpinConfig = {
 `src/data/toeicQuiz.json`(TOEIC 500-600 / 100問)をそのまま使用しています。
 出題はランダムで、**全100問を出題し終えるまで重複しません**(1周すると自動でプールをリセット)。
 
+### 途中結果(プレイ中の進捗確認)
+
+パチンコモードの「途中結果」バーをタップすると、**ゲームを中断せずに**現在の成績を
+モーダルで確認できます。閉じる(「ゲームに戻る」/背景タップ)とそのままプレイを継続します。
+
+* 途中結果は「今のセッションで何を答えたか」を見るだけで、最終結果画面(`/result`)とは別物です。
+* 表示する値は既存の単一情報源から導出し、独自の状態は持ちません(同じ状態を二重に持たない)。
+
+| 表示 | 算出元 |
+| --- | --- |
+| 正解率 / 正解数 / 不正解数 / スコア | フックが保持するセッションの解答記録(`SpinSessionAnswer[]`) |
+| 第n問 / 全問・進捗% | `usePachinkoSpin` の `drawn` / `total` |
+| 所持玉 / 連続正解 | `AppState.balls` / `AppState.streak` |
+| 通算正答率 | `AppState` から `accuracy()` で算出 |
+| 学習時間 | フックが保持する `startedAt` からの経過時間(開閉してもリセット・停止しない) |
+
+正解率・スコア・評価チップ・学習時間の表示は最終結果画面と同じ既存ロジック
+(`resultModel.ts` の `calcScore` / `grade` / `accuracyChip` / `formatDuration`)を再利用しています。
+
 ### 関連ファイル
 
 | ファイル | 役割 |
 | --- | --- |
 | `src/data/toeicQuiz.json` / `.ts` | クイズデータとその型定義・ローダー |
 | `src/hooks/useQuizModal.ts` | 出題ロジック(ランダム選出・重複回避) |
-| `src/hooks/usePachinkoSpin.ts` | 1回転のライフサイクル管理(idle→spinning→quiz→judging→result) |
+| `src/hooks/usePachinkoSpin.ts` | 1回転のライフサイクル管理(idle→spinning→quiz→judging→result)とセッションの解答記録・開始時刻 |
 | `src/components/QuizModal.tsx` / `.css` | 4択クイズモーダル |
 | `src/store/AppContext.tsx` | `SPIN_QUIZ` アクション(1回転分をまとめて確定) |
 | `src/pages/PachinkoMode/PachinkoMode.tsx` | PUSH→クイズ→判定→演出の統合 |
+| `src/pages/PachinkoMode/ProgressModal.tsx` / `.css` | 途中結果モーダル(ゲームを止めずに進捗確認) |
+| `src/pages/Result/resultModel.ts` | スコア計算・ランク判定・評価チップ(結果画面と途中結果で共用) |
 
 ## 技術構成
 

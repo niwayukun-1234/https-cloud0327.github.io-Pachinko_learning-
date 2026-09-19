@@ -51,6 +51,24 @@ export const QUIZ_SPIN_CONFIG: QuizSpinConfig = {
   timings: { spinMs: 900, judgingMs: 1200, resultMs: 1000 },
 };
 
+/**
+ * このセッションで回答した1問分の記録(途中結果の集計元)。
+ *
+ * 途中結果は AppState とは別に「このセッションで何を答えたか」が必要になるため、
+ * ゲームループの所有者であるこのフックが1箇所で保持する。
+ * (途中結果画面側では集計するだけで、同じ状態を二重に持たない)
+ */
+export type SpinSessionAnswer = {
+  /** クイズデータ上のID(例: "toeic-1") */
+  quizId: string;
+  /** 出題された英単語 */
+  word: string;
+  /** 正解したか */
+  correct: boolean;
+  /** 出題から解答までの秒数(スコアの速度ボーナスに使用) */
+  seconds: number;
+};
+
 /** 1回転の判定結果 */
 export type QuizJudgement = {
   /** ユーザーが選んだ選択肢のインデックス */
@@ -94,6 +112,10 @@ export type UsePachinkoSpin = {
   remaining: number;
   /** 収録問題数 */
   total: number;
+  /** このセッションで回答済みの記録(途中結果の集計元) */
+  answers: SpinSessionAnswer[];
+  /** このセッションの開始時刻 (epoch ms)。学習時間の唯一の基準。 */
+  startedAt: number;
   press: () => void;
   answer: (choiceIndex: number) => void;
   config: QuizSpinConfig;
@@ -113,6 +135,12 @@ export function usePachinkoSpin({ balls, streak, onCommit, config = QUIZ_SPIN_CO
   const [question, setQuestion] = useState<QuizQuestion | null>(null);
   const [judgement, setJudgement] = useState<QuizJudgement | null>(null);
   const [result, setResult] = useState<QuizJudgement | null>(null);
+  // セッション中の解答記録と開始時刻。マウント時に1度だけ決まり、
+  // 途中結果を開閉しても変化しない(=学習時間がリセット・停止しない)。
+  const [answers, setAnswers] = useState<SpinSessionAnswer[]>([]);
+  const [startedAt] = useState(() => Date.now());
+  /** 現在の問題を表示した時刻 (performance.now 基準)。解答時間の計測に使う。 */
+  const questionAt = useRef(0);
 
   const timers = useRef<number[]>([]);
   const phaseRef = useRef<SpinPhase>("idle");
@@ -145,6 +173,8 @@ export function usePachinkoSpin({ balls, streak, onCommit, config = QUIZ_SPIN_CO
     later(() => {
       const next = drawNext();
       setQuestion(next);
+      // 出題した時刻を記録し、解答までの秒数を測れるようにする
+      questionAt.current = performance.now();
       setPhaseSafe("quiz");
     }, config.timings.spinMs);
   }, [balls, config.spinCost, config.timings.spinMs, drawNext, later, setPhaseSafe]);
@@ -171,6 +201,16 @@ export function usePachinkoSpin({ balls, streak, onCommit, config = QUIZ_SPIN_CO
 
       setJudgement(judged);
       setPhaseSafe("judging");
+
+      // このセッションの解答記録に積む(途中結果の集計元)
+      const seconds = Math.max(
+        0.1,
+        Math.round(((performance.now() - questionAt.current) / 1000) * 10) / 10,
+      );
+      setAnswers((prev) => [
+        ...prev,
+        { quizId: `toeic-${question.id}`, word: question.word, correct, seconds },
+      ]);
 
       later(() => {
         // 所持玉・回転数を確定させる
@@ -207,6 +247,8 @@ export function usePachinkoSpin({ balls, streak, onCommit, config = QUIZ_SPIN_CO
     drawn,
     remaining,
     total,
+    answers,
+    startedAt,
     press,
     answer,
     config,

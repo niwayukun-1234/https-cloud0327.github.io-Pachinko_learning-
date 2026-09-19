@@ -357,5 +357,10 @@ export function useApp(): Ctx {
   return ctx;
 }
 
-export const accuracy = (s: AppState) =>
+/**
+ * 正答率 (%)。
+ * 通算(AppState)でも、パチンコの途中結果のような部分集計でも同じ式を使えるよう、
+ * 必要な項目だけを受け取る。未回答(0除算)は 0% とする。
+ */
+export const accuracy = (s: { correct: number; answered: number }) =>
   s.answered === 0 ? 0 : Math.round((s.correct / s.answered) * 100);

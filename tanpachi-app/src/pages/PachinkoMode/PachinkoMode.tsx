@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Fx } from "../../components/Fx";
-import { Gear } from "../../components/Icons";
+import { BookOpen, Gear } from "../../components/Icons";
 import { Logo } from "../../components/Logo";
 import { QuizModal } from "../../components/QuizModal";
 import { QUIZ_TITLE } from "../../data/toeicQuiz";
 import { usePachinkoSpin } from "../../hooks/usePachinkoSpin";
-import { useApp } from "../../store/AppContext";
+import { accuracy, useApp } from "../../store/AppContext";
+import { ProgressModal } from "./ProgressModal";
 import "./PachinkoMode.css";
 
 const SYMBOLS = ["7", "桜", "玉", "学", "勝", "富"];
@@ -27,6 +28,8 @@ export function PachinkoMode() {
   const [auto, setAuto] = useState(false);
   const [fxOn, setFxOn] = useState(true);
   const [rolling, setRolling] = useState<string[]>(["た", "ん", "パ"]);
+  // 途中結果のモーダル表示。ゲーム状態には一切触れない(開閉するだけ)。
+  const [showProgress, setShowProgress] = useState(false);
 
   const spin = usePachinkoSpin({
     balls: state.balls,
@@ -103,6 +106,22 @@ export function PachinkoMode() {
           </span>
         </div>
       </section>
+
+      {/* 途中結果: 現在までの進捗を見るだけ。ゲームは終了しない */}
+      <button
+        type="button"
+        className="p-outcome-bar"
+        onClick={() => setShowProgress(true)}
+        aria-label="途中結果を見る（ゲームは続きます）"
+      >
+        <span className="l">
+          <BookOpen size={14} />
+          <span>途中結果</span>
+        </span>
+        <span className="note">
+          {spin.drawn}/{spin.total}問目 ・ ゲームは続きます
+        </span>
+      </button>
 
       <section className="machine">
         <div className="machine-ring">
@@ -200,6 +219,19 @@ export function PachinkoMode() {
         streak={state.streak}
         remaining={spin.remaining}
         total={spin.total}
+      />
+
+      {/* プレイ途中の結果確認。開閉してもゲームは継続したまま */}
+      <ProgressModal
+        open={showProgress}
+        onClose={() => setShowProgress(false)}
+        answers={spin.answers}
+        startedAt={spin.startedAt}
+        drawn={spin.drawn}
+        total={spin.total}
+        balls={state.balls}
+        streak={state.streak}
+        totalAccuracy={accuracy(state)}
       />
     </div>
   );

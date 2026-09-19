@@ -1,6 +1,6 @@
 import { CheckCircle, TrendingUp, Trophy } from "../../components/Icons";
 import type { ResultView } from "../../types";
-import { maxScore } from "./resultModel";
+import { accuracyChip, maxScore } from "./resultModel";
 
 type Props = {
   data: ResultView;
@@ -9,13 +9,6 @@ type Props = {
   /** カウントアップ中のスコア */
   displayScore: number;
 };
-
-/** 正答率に応じた評価チップ（モックアップの「優秀」相当を実データで出し分け） */
-function accuracyChip(rate: number) {
-  if (rate >= 90) return { label: "優秀", cls: "green" };
-  if (rate >= 70) return { label: "良好", cls: "gold" };
-  return { label: "要復習", cls: "red" };
-}
 
 export function ResultHero({ data, displayAccuracy, displayScore }: Props) {
   const chip = accuracyChip(data.accuracyRate);

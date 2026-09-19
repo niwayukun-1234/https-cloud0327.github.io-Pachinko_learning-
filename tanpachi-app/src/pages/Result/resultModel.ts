@@ -4,7 +4,6 @@ import type {
   RankEnglish,
   ResultView,
   ScoreRank,
-  SessionAnswer,
 } from "../../types";
 import { accuracy, type AppState } from "../../store/AppContext";
 
@@ -31,8 +30,12 @@ export function maxScore(total: number): number {
   return total * BASE_PER_CORRECT + PERFECT_BONUS + total * SPEED_BONUS_MAX;
 }
 
-/** セッションのスコアを計算する */
-export function calcScore(answers: SessionAnswer[]): number {
+/**
+ * スコアを計算する。
+ * パチンコの途中結果でも同じ式を使えるよう、必要な項目だけを受け取る
+ * (`SessionAnswer[]` でも、出題順の解答記録でも呼べる)。
+ */
+export function calcScore(answers: readonly { correct: boolean; seconds: number }[]): number {
   const correct = answers.filter((a) => a.correct);
   const base = correct.length * BASE_PER_CORRECT;
   const perfect = answers.length > 0 && correct.length === answers.length ? PERFECT_BONUS : 0;
@@ -91,6 +94,16 @@ export function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+/**
+ * 正答率に応じた評価チップ（モックアップの「優秀」相当を実データで出し分け）。
+ * 最終結果画面とパチンコの途中結果で同じ出し分けを使うため、ここに置いている。
+ */
+export function accuracyChip(rate: number) {
+  if (rate >= 90) return { label: "優秀", cls: "green" };
+  if (rate >= 70) return { label: "良好", cls: "gold" };
+  return { label: "要復習", cls: "red" };
 }
 
 /**
