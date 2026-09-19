@@ -6,19 +6,29 @@ import { useApp } from "../../store/AppContext";
 import correctSfx from "../../assets/correct.mp3";
 import "./Correct.css";
 
-type LocState = { word?: string; reward?: number; finished?: boolean };
+type LocState = { word?: string; reward?: number; combo?: number; finished?: boolean };
 
 // 正解演出を表示してから、次の問題へ自動で進むまでの時間 (ms)
 const HOLD_MS = 2000;
+
+/** 連続正解の回数を 1〜4 の演出レベルに変換 */
+function fxTier(combo: number) {
+  if (combo >= 8) return 4;
+  if (combo >= 5) return 3;
+  if (combo >= 3) return 2;
+  return 1;
+}
 
 export function Correct() {
   const navigate = useNavigate();
   const { state } = useApp();
   const loc = useLocation();
-  const { reward = 10, finished = false } = (loc.state as LocState | null) ?? {};
+  const { reward = 10, combo = 1, finished = false } = (loc.state as LocState | null) ?? {};
   const [displayed, setDisplayed] = useState(state.balls - reward);
   // StrictMode の二重実行でも効果音を一度だけ鳴らすためのガード
   const playedRef = useRef(false);
+
+  const tier = fxTier(combo);
 
   // 所持玉のカウントアップ演出
   useEffect(() => {
@@ -63,34 +73,61 @@ export function Correct() {
     return () => window.clearTimeout(t);
   }, [next]);
 
+  // コンボが伸びるほど演出がどんどん豪華になる
+  const intensity = useMemo(
+    () => ({
+      sparkles: 40 + combo * 12,
+      petals: 8 + combo * 4,
+      coins: 24 + combo * 6,
+      rings: 3 + Math.min(combo, 6),
+    }),
+    [combo],
+  );
+
   // 舞い上がるコイン（毎回ランダム）
   const coins = useMemo(
     () =>
-      Array.from({ length: 28 }, (_, i) => ({
+      Array.from({ length: intensity.coins }, (_, i) => ({
         id: i,
         x: 4 + Math.random() * 92,
         delay: Math.random() * 0.6,
         dur: 0.9 + Math.random() * 0.9,
         size: 12 + Math.random() * 18,
       })),
-    [],
+    [intensity.coins],
   );
 
   return (
-    <div className="correct">
-      <Fx rays sparkles={64} petals={12} />
+    <div className={`correct tier-${tier}${combo >= 3 ? " combo-hi" : ""}`}>
+      <Fx rays sparkles={intensity.sparkles} petals={intensity.petals} />
 
       {/* ちかちか系の演出レイヤー */}
       <div className="correct-burst" aria-hidden />
       <div className="correct-rays-fast" aria-hidden />
       <div className="correct-rings" aria-hidden>
-        <span />
-        <span />
-        <span />
+        {Array.from({ length: intensity.rings }, (_, i) => (
+          <span key={i} />
+        ))}
       </div>
       <div className="correct-strobe" aria-hidden />
       <div className="correct-flash" aria-hidden />
       <div className="correct-edge" aria-hidden />
+      {tier >= 2 && <div className="correct-lightning" aria-hidden />}
+      {tier >= 3 && (
+        <div className="correct-fireworks" aria-hidden>
+          {Array.from({ length: 3 + (tier - 3) * 3 }, (_, i) => (
+            <span
+              key={i}
+              style={{
+                left: `${15 + i * 22}%`,
+                top: `${18 + (i % 3) * 16}%`,
+                animationDelay: `${0.2 + i * 0.25}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {tier >= 4 && <div className="correct-rainbow" aria-hidden />}
       <div className="correct-confetti" aria-hidden>
         {coins.map((c) => (
           <span
@@ -108,6 +145,15 @@ export function Correct() {
       </div>
 
       <div className="correct-body">
+        {combo >= 2 && (
+          <div className={`correct-combo tier-${tier}`}>
+            <span className="combo-label">連続正解</span>
+            <span className="combo-num">
+              {combo}
+              <small>コンボ</small>
+            </span>
+          </div>
+        )}
         <div className="correct-title-wrap">
           <h1 className="correct-title brush">正解!</h1>
         </div>

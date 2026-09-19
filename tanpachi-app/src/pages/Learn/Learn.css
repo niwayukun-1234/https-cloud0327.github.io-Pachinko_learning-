@@ -57,6 +57,38 @@
   margin-right: 2px;
 }
 
+.learn-combo {
+  align-self: center;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a0a04;
+  background: linear-gradient(180deg, var(--gold-2), var(--gold));
+  border: 2px solid #fff3b0;
+  box-shadow: 0 0 18px rgba(245, 197, 66, 0.7);
+  animation: combo-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.learn-combo b {
+  font-size: 22px;
+  margin: 0 2px;
+}
+
+@keyframes combo-pop {
+  0% {
+    transform: scale(0.4) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
 .learn-word {
   text-align: center;
   margin-top: 8px;

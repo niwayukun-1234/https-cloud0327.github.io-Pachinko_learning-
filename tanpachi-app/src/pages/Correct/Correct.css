@@ -96,6 +96,225 @@
 .correct-rings span:nth-child(3) {
   animation-delay: 0.9s;
 }
+.correct-rings span:nth-child(4) {
+  animation-delay: 1.35s;
+}
+.correct-rings span:nth-child(5) {
+  animation-delay: 1.8s;
+}
+.correct-rings span:nth-child(6) {
+  animation-delay: 2.25s;
+}
+.correct-rings span:nth-child(7) {
+  animation-delay: 2.7s;
+}
+.correct-rings span:nth-child(8) {
+  animation-delay: 3.15s;
+}
+.correct-rings span:nth-child(9) {
+  animation-delay: 3.6s;
+}
+
+/* tier2+: 稲妻の走る光 */
+.correct-lightning {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 46%, rgba(255, 255, 255, 0.95) 48%, rgba(200, 230, 255, 0.9) 49%, transparent 51%),
+    linear-gradient(-65deg, transparent 46%, rgba(255, 255, 255, 0.8) 48%, transparent 51%);
+  mix-blend-mode: screen;
+  animation: lightning 0.5s steps(3, jump-none) infinite;
+}
+
+/* tier3+: 花火 */
+.correct-fireworks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.correct-fireworks span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 12px 4px rgba(255, 220, 120, 0.95),
+    0 -26px 0 -1px #ffd24a,
+    0 26px 0 -1px #ff7a3d,
+    -26px 0 0 -1px #6ce0ff,
+    26px 0 0 -1px #ff6bb5,
+    -18px -18px 0 -2px #b6ff6b,
+    18px 18px 0 -2px #ffd24a;
+  animation: firework-burst 1.1s ease-out infinite;
+  opacity: 0;
+}
+
+/* tier4: レインボーの全画面フラッシュ */
+.correct-rainbow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      90deg,
+      rgba(255, 0, 80, 0.35),
+      rgba(255, 154, 0, 0.35),
+      rgba(255, 240, 0, 0.35),
+      rgba(74, 222, 128, 0.35),
+      rgba(56, 189, 248, 0.35),
+      rgba(167, 139, 250, 0.35)
+    );
+  mix-blend-mode: screen;
+  animation: rainbow-cycle 1.2s linear infinite;
+}
+
+/* ---------- tier ごとの激しさ ---------- */
+.correct.tier-1 .correct-strobe,
+.correct.tier-1 .correct-flash,
+.correct.tier-1 .correct-rays-fast {
+  opacity: 0.75;
+}
+
+.correct.tier-2 .correct-strobe {
+  animation-duration: 0.36s, 0.14s;
+}
+.correct.tier-2 .correct-flash {
+  animation-duration: 0.16s;
+}
+
+.correct.tier-3 .correct-strobe {
+  animation-duration: 0.3s, 0.1s;
+}
+.correct.tier-3 .correct-flash {
+  animation-duration: 0.12s;
+}
+.correct.tier-3 .correct-burst {
+  animation-duration: 0.6s, 0.45s;
+}
+
+.correct.tier-4 {
+  animation-duration: 0.22s;
+}
+.correct.tier-4 .correct-strobe {
+  animation-duration: 0.24s, 0.08s;
+}
+.correct.tier-4 .correct-flash {
+  animation-duration: 0.09s;
+}
+.correct.tier-4 .correct-rays-fast {
+  animation-duration: 3s;
+}
+.correct.tier-4 .correct-burst {
+  animation-duration: 0.5s, 0.35s;
+}
+
+/* ---------- コンボ表示 ---------- */
+.correct-combo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  margin-bottom: 4px;
+  animation: combo-slam 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.correct-combo .combo-label {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #fff3b0;
+  text-shadow: 0 2px 0 #7a1020, 0 0 16px rgba(255, 190, 60, 0.9);
+}
+
+.correct-combo .combo-num {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 66px;
+  font-weight: 900;
+  font-style: italic;
+  color: #ffe08a;
+  text-shadow:
+    0 4px 0 #7a1020,
+    0 0 30px rgba(255, 190, 60, 1);
+  animation: plus-blink 0.3s steps(2, jump-none) infinite;
+}
+
+.correct-combo .combo-num small {
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* 高コンボは数字を虹色に */
+.correct-combo.tier-3 .combo-num,
+.correct-combo.tier-4 .combo-num {
+  background: linear-gradient(90deg, #ff4d6d, #ffb02e, #fff34d, #4ade80, #38bdf8, #a78bfa);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: plus-blink 0.3s steps(2, jump-none) infinite, rainbow-text 1.4s linear infinite;
+}
+
+@keyframes combo-slam {
+  0% {
+    transform: scale(2.4) rotate(-10deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.9) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes rainbow-text {
+  to {
+    background-position: 300% 0;
+  }
+}
+
+@keyframes lightning {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.95;
+  }
+  18% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  46% {
+    opacity: 0;
+  }
+}
+
+@keyframes firework-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes rainbow-cycle {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
 
 /* 舞い上がるコイン */
 .correct-confetti {

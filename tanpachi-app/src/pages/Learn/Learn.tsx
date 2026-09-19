@@ -11,7 +11,7 @@ const TOTAL = 10;
 const REWARD = 10;
 const SESSION_KEY = "tanpachi:session";
 
-type Session = { index: number; order: string[] };
+type Session = { index: number; order: string[]; combo?: number };
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -38,7 +38,7 @@ function loadSession(): Session {
   // Always start with "challenge" like the mock
   const first = order.indexOf("challenge");
   if (first > 0) [order[0], order[first]] = [order[first], order[0]];
-  const s = { index: 0, order: order.slice(0, TOTAL) };
+  const s = { index: 0, order: order.slice(0, TOTAL), combo: 0 };
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
   return s;
 }
@@ -68,17 +68,26 @@ export function Learn() {
   const choose = (c: string) => {
     if (selected) return;
     setSelected(c);
-    const correct = c === word.meaning;
-    answer(word.id, correct, REWARD);
-    const next: Session = { ...session, index: session.index + 1 };
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    if (correct) {
-      window.setTimeout(() => {
-        navigate("/learn/correct", {
-          state: { word: word.word, reward: REWARD, finished: next.index >= TOTAL },
-        });
-      }, 900);
+    const isRight = c === word.meaning;
+
+    if (isRight) {
+      // 連続正解コンボ。コンボが伸びるほど獲得玉数が増える。
+      const combo = (session.combo ?? 0) + 1;
+      const reward = REWARD * combo;
+      answer(word.id, true, reward);
+      const next: Session = { ...session, index: session.index + 1, combo };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+      // 正解した瞬間に正解画面へ（タイムラグなし）
+      navigate("/learn/correct", {
+        state: { word: word.word, reward, combo, finished: next.index >= TOTAL },
+      });
+      return;
     }
+
+    // 不正解: コンボをリセット
+    answer(word.id, false, 0);
+    const next: Session = { ...session, index: session.index + 1, combo: 0 };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
   };
 
   const goNext = () => {
@@ -112,6 +121,12 @@ export function Learn() {
             <b>{session.index + 1}</b>問
           </span>
         </div>
+
+        {session.combo ? (
+          <div className="learn-combo" key={session.combo}>
+            連続正解 <b>{session.combo}</b> 回
+          </div>
+        ) : null}
 
         <div className="learn-word">
           <h1>{word.word}</h1>
