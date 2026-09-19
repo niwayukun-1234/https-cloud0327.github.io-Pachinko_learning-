@@ -162,3 +162,49 @@ export const Trophy = ({ size, ...p }: P) => (
     <path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4v4" />
   </svg>
 );
+export const X = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+export const Zap = ({ size, ...p }: P) => (
+  <svg {...base(size, p)} fill="currentColor" stroke="none">
+    <path d="M13 2L4 14h6l-1 8 9-12h-6z" />
+  </svg>
+);
+export const Sparkles = ({ size, ...p }: P) => (
+  <svg {...base(size, p)} fill="currentColor" stroke="none">
+    <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
+    <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8z" />
+  </svg>
+);
+export const CheckCircle = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8 12.5l2.5 2.5L16 9.5" />
+  </svg>
+);
+export const XCircle = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9 9l6 6M15 9l-6 6" />
+  </svg>
+);
+export const ArrowRight = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
+export const RotateCcw = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M3 12a9 9 0 1 0 3-6.7" />
+    <path d="M3 4v5h5" />
+  </svg>
+);
+export const Radio = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="12" cy="12" r="2" />
+    <path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 16.2a6 6 0 0 0 0-8.4" />
+    <path d="M5 5a10 10 0 0 0 0 14M19 19a10 10 0 0 0 0-14" />
+  </svg>
+);

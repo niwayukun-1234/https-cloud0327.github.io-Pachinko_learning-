@@ -7,7 +7,7 @@ import {
   useReducer,
   type ReactNode,
 } from "react";
-import type { BallHistoryEntry, WordStatus } from "../types";
+import type { BallHistoryEntry, QuizSpinResult, WordStatus } from "../types";
 import { WORDS } from "../data/words";
 
 export type AppState = {
@@ -18,6 +18,7 @@ export type AppState = {
   balls: number;
   totalSpins: number;
   jackpots: number;
+  streak: number; // パチンコ内の連続正解数
   todayMinutes: number;
   goalMinutes: number;
   learnedCount: number;
@@ -34,6 +35,7 @@ export type AppState = {
 type Action =
   | { type: "ANSWER"; wordId: string; correct: boolean; reward: number }
   | { type: "SPIN"; cost: number; win: number; jackpot: boolean }
+  | { type: "SPIN_QUIZ"; result: QuizSpinResult }
   | { type: "TOGGLE_STAR"; wordId: string }
   | { type: "PURCHASE"; rewardId: string; cost: number }
   | { type: "RESET" };
@@ -56,6 +58,7 @@ export const initialState: AppState = {
   balls: 1230,
   totalSpins: 248,
   jackpots: 3,
+  streak: 0,
   todayMinutes: 15,
   goalMinutes: 30,
   learnedCount: 328,
@@ -125,6 +128,39 @@ function reducer(state: AppState, action: Action): AppState {
         ].slice(0, 50),
       };
     }
+    case "SPIN_QUIZ": {
+      const { result } = action;
+      const delta = result.reward - result.penalty - result.cost;
+      const expGain = result.correct ? 10 : 2;
+      const nextExp = state.exp + expGain;
+      const levelUp = nextExp >= state.expToNext;
+      return {
+        ...state,
+        balls: Math.max(0, state.balls + delta),
+        earnedToday: state.earnedToday + Math.max(0, result.reward - result.penalty),
+        totalSpins: state.totalSpins + 1,
+        jackpots: state.jackpots + (result.jackpot ? 1 : 0),
+        streak: result.streak,
+        correct: state.correct + (result.correct ? 1 : 0),
+        answered: state.answered + 1,
+        learnedCount: state.learnedCount + (result.correct ? 1 : 0),
+        exp: levelUp ? nextExp - state.expToNext : nextExp,
+        level: levelUp ? state.level + 1 : state.level,
+        history: [
+          {
+            id: uid(),
+            at: new Date().toISOString(),
+            delta,
+            reason: result.jackpot
+              ? `パチンコ 大当たり (${result.word})`
+              : result.correct
+                ? `パチンコ 正解 (${result.word})`
+                : `パチンコ 不正解 (${result.word})`,
+          },
+          ...state.history,
+        ].slice(0, 50),
+      };
+    }
     case "TOGGLE_STAR": {
       const status = state.wordStatus[action.wordId] ?? { learned: false, weak: false, starred: false };
       return {
@@ -166,6 +202,8 @@ type Ctx = {
   state: AppState;
   answer: (wordId: string, correct: boolean, reward?: number) => void;
   spin: (cost: number, win: number, jackpot: boolean) => void;
+  /** クイズ=抽選の1回転分をまとめて確定させる */
+  spinQuiz: (result: QuizSpinResult) => void;
   toggleStar: (wordId: string) => void;
   purchase: (rewardId: string, cost: number) => boolean;
   reset: () => void;
@@ -189,6 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (cost: number, win: number, jackpot: boolean) => dispatch({ type: "SPIN", cost, win, jackpot }),
     [],
   );
+  const spinQuiz = useCallback((result: QuizSpinResult) => dispatch({ type: "SPIN_QUIZ", result }), []);
   const toggleStar = useCallback((wordId: string) => dispatch({ type: "TOGGLE_STAR", wordId }), []);
   const purchase = useCallback(
     (rewardId: string, cost: number) => {
@@ -201,8 +240,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
 
   const value = useMemo(
-    () => ({ state, answer, spin, toggleStar, purchase, reset }),
-    [state, answer, spin, toggleStar, purchase, reset],
+    () => ({ state, answer, spin, spinQuiz, toggleStar, purchase, reset }),
+    [state, answer, spin, spinQuiz, toggleStar, purchase, reset],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
