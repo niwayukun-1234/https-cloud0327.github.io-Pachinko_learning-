@@ -6,7 +6,10 @@
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 38%, #ffd27a 0%, #ff8c1a 14%, #c8102e 34%, #2a0810 62%, #07070b 100%);
+  animation: correct-bg-flash 0.34s steps(2, jump-none) infinite;
 }
+
+/* ---------- ちかちか系レイヤー ---------- */
 
 .correct-burst {
   position: absolute;
@@ -16,14 +19,103 @@
   height: 260px;
   margin: -130px 0 0 -130px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(255, 210, 120, 0.5) 40%, transparent 70%);
-  animation: pop 0.6s ease both;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95), rgba(255, 210, 120, 0.55) 40%, transparent 70%);
+  animation: pop 0.6s ease both, burst-pulse 0.7s ease-in-out 0.6s infinite;
   filter: blur(6px);
+}
+
+.correct-rays-fast {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 1400px;
+  height: 1400px;
+  margin: -700px 0 0 -700px;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 236, 150, 0.5) 0deg 4deg,
+    transparent 4deg 11deg
+  );
+  mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.5) 40%, transparent 62%);
+  animation: rays 6s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* 画面全体を高速で明滅させるストロボ */
+.correct-strobe {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.16) 0 6px,
+    transparent 6px 22px
+  );
+  mix-blend-mode: screen;
+  animation: strobe-move 0.5s linear infinite, strobe-flicker 0.18s steps(2, jump-none) infinite;
+}
+
+.correct-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.95), rgba(255, 220, 140, 0.4) 45%, transparent 75%);
+  mix-blend-mode: screen;
+  animation: flash-flicker 0.22s steps(2, jump-none) infinite;
+}
+
+.correct-edge {
+  position: absolute;
+  inset: 0;
+  animation: edge-flash 0.3s steps(2, jump-none) infinite;
+}
+
+/* 拡大していく輪 */
+.correct-rings {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 0;
+  height: 0;
+}
+
+.correct-rings span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200px;
+  height: 200px;
+  margin: -100px 0 0 -100px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 224, 138, 0.9);
+  box-shadow: 0 0 26px rgba(255, 200, 70, 0.8), inset 0 0 20px rgba(255, 200, 70, 0.6);
+  animation: ring-expand 1.4s ease-out infinite;
+}
+
+.correct-rings span:nth-child(2) {
+  animation-delay: 0.45s;
+}
+.correct-rings span:nth-child(3) {
+  animation-delay: 0.9s;
+}
+
+/* 舞い上がるコイン */
+.correct-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.correct-coin {
+  position: absolute;
+  bottom: -40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c8 0%, #ffd24a 40%, #b8860b 100%);
+  box-shadow: 0 0 10px rgba(255, 210, 74, 0.9);
+  animation: coin-rise linear infinite;
 }
 
 .correct-body {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -33,15 +125,20 @@
   gap: 8px;
 }
 
+.correct-title-wrap {
+  animation: title-shake 0.32s ease-in-out infinite;
+}
+
 .correct-title {
   margin: 0;
-  font-size: 84px;
+  font-size: 92px;
   line-height: 1;
   background: linear-gradient(180deg, #fff3b0 0%, #ffb02e 45%, #e0331a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 4px 0 #5a0a12) drop-shadow(0 0 22px rgba(255, 170, 60, 0.9));
+  filter: drop-shadow(0 4px 0 #5a0a12) drop-shadow(0 0 26px rgba(255, 170, 60, 1));
+  animation: pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both, title-blink 0.5s steps(2, jump-none) 0.5s infinite;
 }
 
 .correct-ball-wrap {
@@ -59,7 +156,7 @@
   inset: -16px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.7), transparent 70%);
-  animation: pulse-glow 1.6s ease-in-out infinite;
+  animation: pulse-glow 0.9s ease-in-out infinite;
 }
 
 .correct-ball {
@@ -73,24 +170,26 @@
   align-items: baseline;
   gap: 6px;
   line-height: 1;
+  animation: zoom-punch 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
 .correct-plus .plus {
-  font-size: 84px;
+  font-size: 92px;
   font-weight: 900;
   font-style: italic;
   color: #ffe08a;
   text-shadow:
     0 4px 0 #7a1020,
-    0 0 26px rgba(255, 190, 60, 0.9);
+    0 0 30px rgba(255, 190, 60, 1);
+  animation: plus-blink 0.26s steps(2, jump-none) 0.7s infinite;
 }
 
 .correct-plus .unit {
-  font-size: 46px;
+  font-size: 50px;
   color: #ffe08a;
   text-shadow:
     0 3px 0 #7a1020,
-    0 0 20px rgba(255, 190, 60, 0.9);
+    0 0 22px rgba(255, 190, 60, 1);
 }
 
 .correct-balance {
@@ -99,6 +198,7 @@
   padding: 12px 16px 14px;
   text-align: center;
   background: rgba(10, 8, 4, 0.85);
+  animation: fade-up 0.5s ease 0.2s both;
 }
 
 .correct-balance .label {
@@ -107,6 +207,154 @@
   margin-bottom: 4px;
 }
 
-.correct-next {
-  margin-top: 14px;
+/* ---------- keyframes ---------- */
+
+@keyframes correct-bg-flash {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.35) saturate(1.25);
+  }
+}
+
+@keyframes burst-pulse {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+@keyframes strobe-move {
+  to {
+    background-position: 0 220px;
+  }
+}
+
+@keyframes strobe-flicker {
+  0% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes flash-flicker {
+  0% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes edge-flash {
+  0% {
+    box-shadow:
+      inset 0 0 60px rgba(255, 220, 120, 0.5),
+      inset 0 0 12px rgba(255, 255, 255, 0.7);
+  }
+  100% {
+    box-shadow:
+      inset 0 0 120px rgba(255, 120, 40, 0.85),
+      inset 0 0 30px rgba(255, 255, 255, 1);
+  }
+}
+
+@keyframes ring-expand {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+@keyframes coin-rise {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-560px) rotate(540deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes title-shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-2px, 1px) rotate(-1deg);
+  }
+  50% {
+    transform: translate(2px, -1px) rotate(1deg);
+  }
+  75% {
+    transform: translate(-1px, -2px) rotate(-0.5deg);
+  }
+}
+
+@keyframes title-blink {
+  0%,
+  100% {
+    filter: drop-shadow(0 4px 0 #5a0a12) drop-shadow(0 0 26px rgba(255, 170, 60, 1));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 4px 0 #5a0a12) drop-shadow(0 0 50px rgba(255, 255, 200, 1));
+    transform: scale(1.08);
+  }
+}
+
+@keyframes plus-blink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes zoom-punch {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 動きを減らす設定への配慮 */
+@media (prefers-reduced-motion: reduce) {
+  .correct,
+  .correct-strobe,
+  .correct-flash,
+  .correct-edge,
+  .correct-title,
+  .correct-plus .plus {
+    animation-iteration-count: 1 !important;
+  }
 }
