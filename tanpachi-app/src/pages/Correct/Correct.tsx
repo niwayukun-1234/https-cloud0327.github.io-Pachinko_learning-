@@ -5,6 +5,7 @@ import { Fx } from "../../components/Fx";
 import { useApp } from "../../store/AppContext";
 import correctSfx from "../../assets/correct.mp3";
 import kakuhenSfx from "../../assets/kakuhen.mp3";
+import combo3Sfx from "../../assets/combo3.mp3";
 import "./Correct.css";
 
 type LocState = {
@@ -19,12 +20,14 @@ type LocState = {
 
 // 通常の正解演出を表示してから次へ進むまでの時間 (ms)
 const HOLD_MS = 2000;
-// 確変（ボーナス）演出は少し長めに見せる
-const KAKUHEN_HOLD_MS = 3600;
-// 獲得玉数に比例してあふれるパチンコ玉の上限（描画負荷対策）
+// 獲得玉数に比例してあふれるパチンコ玉の数（下限/上限＝「あふれる感」と描画負荷の両立）
+const FLOOD_MIN = 24;
 const FLOOD_MAX = 200;
+// 音声が取れなかった場合の保険待ち時間 (ms)
+const KAKUHEN_FALLBACK_MS = 17000;
+const COMBO3_FALLBACK_MS = 10000;
 
-/** 連続正解の回数を 1〜4 の演出レベルに変換 */
+/** 連続正解の回数を 1〜5 の演出レベルに変換 */
 function fxTier(combo: number, kakuhen: boolean) {
   if (kakuhen) return 5;
   if (combo >= 8) return 4;
@@ -35,7 +38,7 @@ function fxTier(combo: number, kakuhen: boolean) {
 
 // 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
 let currentSfx: HTMLAudioElement | null = null;
-function playSfx(src: string) {
+function playSfx(src: string): HTMLAudioElement {
   if (currentSfx) {
     currentSfx.pause();
     currentSfx = null;
@@ -46,6 +49,7 @@ function playSfx(src: string) {
   void audio.play().catch(() => {
     /* 自動再生がブロックされた環境では無視 */
   });
+  return audio;
 }
 
 export function Correct() {
@@ -57,16 +61,25 @@ export function Correct() {
     bonus = 0,
     combo = 1,
     kakuhen = false,
-    kakuhenTrigger = false,
     finished = false,
   } = (loc.state as LocState | null) ?? {};
 
   const baseReward = Math.max(0, reward - bonus);
   const tier = fxTier(combo, kakuhen);
+
+  // 再生する効果音を決定
+  //  - 確変中: 専用音源（約14秒）
+  //  - 3連続正解: 添付音楽（約8秒）
+  //  - それ以外: 正解音（約1.8秒）
+  const sfx = kakuhen ? kakuhenSfx : combo === 3 ? combo3Sfx : correctSfx;
+  // 音声が終わるまで正解の表記を保持するか（確変時 / 3連続正解時）
+  const holdUntilSoundEnds = kakuhen || combo === 3;
+
   const [displayed, setDisplayed] = useState(state.balls - reward);
   const [bonusRevealed, setBonusRevealed] = useState(false);
   // StrictMode の二重実行でも効果音を一度だけ鳴らすためのガード
   const playedRef = useRef(false);
+  const soundRef = useRef<HTMLAudioElement | null>(null);
 
   // 所持玉のカウントアップ演出（確変時は演出の途中から +100 ボーナスが加算される）
   useEffect(() => {
@@ -101,15 +114,13 @@ export function Correct() {
     return () => window.clearTimeout(t);
   }, [bonus]);
 
-  // 正解効果音を再生。確変突入時は専用の音源を使う。
-  // StrictMode の二重実行でも一度だけ鳴らす。
+  // 正解効果音を再生。StrictMode の二重実行でも一度だけ鳴らす。
   useEffect(() => {
     if (playedRef.current) return;
     playedRef.current = true;
     // 音源は自然再生のままにして、遷移時も鳴り続けるようにする
-    // （確変音源は約14秒ある）
-    playSfx(kakuhenTrigger ? kakuhenSfx : correctSfx);
-  }, [kakuhenTrigger]);
+    soundRef.current = playSfx(sfx);
+  }, [sfx]);
 
   const next = useCallback(() => {
     if (finished) {
@@ -120,12 +131,30 @@ export function Correct() {
     }
   }, [finished, navigate]);
 
-  // ボタンを押さなくても自動的に次へ進む
+  // 自動的に次へ進む。
+  //  - 通常: 2秒で進む
+  //  - 確変 / 3連続正解: 音声が終わるまで正解の表記を保持してから進む
   useEffect(() => {
-    const hold = bonus > 0 || kakuhen ? KAKUHEN_HOLD_MS : HOLD_MS;
-    const t = window.setTimeout(next, hold);
-    return () => window.clearTimeout(t);
-  }, [next, bonus, kakuhen]);
+    if (!holdUntilSoundEnds) {
+      const t = window.setTimeout(next, HOLD_MS);
+      return () => window.clearTimeout(t);
+    }
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      next();
+    };
+    const fallbackMs = kakuhen ? KAKUHEN_FALLBACK_MS : COMBO3_FALLBACK_MS;
+    const timer = window.setTimeout(finish, fallbackMs);
+    const audio = soundRef.current;
+    const onEnded = () => finish();
+    if (audio) audio.addEventListener("ended", onEnded);
+    return () => {
+      window.clearTimeout(timer);
+      if (audio) audio.removeEventListener("ended", onEnded);
+    };
+  }, [holdUntilSoundEnds, kakuhen, next]);
 
   // コンボ/確変が進むほど演出がどんどん豪華になる
   const intensity = useMemo(
@@ -151,16 +180,16 @@ export function Correct() {
     [intensity.coins],
   );
 
-  // 獲得玉数に比例して、正解の後ろ側であふれるパチンコ玉
-  const floodCount = Math.min(reward, FLOOD_MAX);
+  // 獲得玉数に比例して、上から降ってくる（あふれる）パチンコ玉
+  const floodCount = Math.min(Math.max(reward, FLOOD_MIN), FLOOD_MAX);
   const flood = useMemo(
     () =>
       Array.from({ length: floodCount }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
-        delay: Math.random() * 0.8,
-        dur: 0.8 + Math.random() * 1.1,
-        size: 10 + Math.random() * 16,
+        delay: Math.random() * 0.9,
+        dur: 1.0 + Math.random() * 1.2,
+        size: 24 + Math.random() * 28,
       })),
     [floodCount],
   );
@@ -169,7 +198,7 @@ export function Correct() {
     <div className={`correct tier-${tier}${kakuhen ? " kakuhen" : ""}`}>
       <Fx rays sparkles={intensity.sparkles} petals={intensity.petals} />
 
-      {/* 獲得玉数分、正解の後ろ側であふれるパチンコ玉 */}
+      {/* 獲得玉数分、上から降ってくるパチンコ玉 */}
       <div className="correct-ball-flood" aria-hidden>
         {flood.map((b) => (
           <span
@@ -242,7 +271,9 @@ export function Correct() {
           </div>
         )}
         <div className="correct-title-wrap">
-          <h1 className="correct-title brush">正解!</h1>
+          <div className={`correct-title-rot${kakuhen ? " spin" : ""}`}>
+            <h1 className="correct-title brush">正解!</h1>
+          </div>
         </div>
         <div className="correct-ball-wrap">
           <span className="ball correct-ball" />
