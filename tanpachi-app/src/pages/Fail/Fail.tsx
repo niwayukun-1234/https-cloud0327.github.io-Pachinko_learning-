@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { playMiss } from "../../lib/sfx";
+import kakuhenSfx from "../../assets/kakuhen.mp3";
+import { playMiss, playSfx } from "../../lib/sfx";
 import "./Fail.css";
 
 type FailKind = "miss" | "timeout" | "kakuhenEnd";
-type LocState = { kind?: FailKind; finished?: boolean };
+type LocState = { kind?: FailKind; finished?: boolean; penalty?: number; revive?: boolean };
 
 // 失敗演出を表示してから次へ進むまでの時間 (ms)
-const HOLD_MS = 3400;
+const HOLD_MS = 2300;
+// 確変終了→確変突入 に切り替わる時間と、切り替え後の保持時間 (ms)
+const FLIP_MS = 1150;
+const REVIVE_HOLD_MS = 2950;
 
 /** 稲妻のポリライン座標（0〜100 の viewBox 空間）を生成 */
 function bolt(x1: number, y1: number, x2: number, y2: number, segs = 9, jag = 13): string {
@@ -25,10 +29,19 @@ function bolt(x1: number, y1: number, x2: number, y2: number, segs = 9, jag = 13
 export function Fail() {
   const navigate = useNavigate();
   const loc = useLocation();
-  const { kind = "miss", finished = false } = (loc.state as LocState | null) ?? {};
+  const { kind = "miss", finished = false, penalty = 0, revive = false } =
+    (loc.state as LocState | null) ?? {};
   const playedRef = useRef(false);
+  // 確変終了 → 確変突入 への切り替えフラグ
+  const [revived, setRevived] = useState(false);
 
-  const title = kind === "timeout" ? "時間切れ" : kind === "kakuhenEnd" ? "確変終了" : "失敗";
+  const title = revived
+    ? "確変突入!"
+    : kind === "timeout"
+      ? "時間切れ"
+      : kind === "kakuhenEnd"
+        ? "確変終了"
+        : "失敗";
   const cls = `fail-title${title.length > 2 ? " long" : ""}`;
 
   // 外れっぽい効果音を一度だけ鳴らす
@@ -37,6 +50,17 @@ export function Fail() {
     playedRef.current = true;
     playMiss();
   }, []);
+
+  // 確変終了の演出の途中で「確変突入!」へ切り替える
+  useEffect(() => {
+    if (!revive) return;
+    const t = window.setTimeout(() => {
+      setRevived(true);
+      // 切り替えの瞬間に確変突入の音を鳴らす
+      playSfx(kakuhenSfx);
+    }, FLIP_MS);
+    return () => window.clearTimeout(t);
+  }, [revive]);
 
   const next = useCallback(() => {
     if (finished) {
@@ -48,9 +72,10 @@ export function Fail() {
   }, [finished, navigate]);
 
   useEffect(() => {
-    const t = window.setTimeout(next, HOLD_MS);
+    const hold = revive ? REVIVE_HOLD_MS : HOLD_MS;
+    const t = window.setTimeout(next, hold);
     return () => window.clearTimeout(t);
-  }, [next]);
+  }, [next, revive]);
 
   // 放射状のスピードライン・稲妻・破片を毎回ランダム生成
   const bolts = useMemo(() => {
@@ -79,7 +104,9 @@ export function Fail() {
     }
     // 短い枝葉の稲妻
     for (let i = 0; i < 4; i++) {
-      b.push(bolt(Math.random() * 100, Math.random() * 60, 30 + Math.random() * 40, 30 + Math.random() * 30, 6, 9));
+      b.push(
+        bolt(Math.random() * 100, Math.random() * 60, 30 + Math.random() * 40, 30 + Math.random() * 30, 6, 9),
+      );
     }
     return b;
   }, []);
@@ -97,8 +124,10 @@ export function Fail() {
     [],
   );
 
+  const showPenalty = penalty > 0;
+
   return (
-    <div className={`fail fail-${kind}`}>
+    <div className={`fail fail-${kind}${revived ? " revive" : ""}`}>
       {/* 放射状スピードライン */}
       <div className="fail-rays" aria-hidden />
       <div className="fail-rays fail-rays-2" aria-hidden />
@@ -144,8 +173,21 @@ export function Fail() {
             {title}
           </span>
         </div>
-        {kind === "kakuhenEnd" && <div className="fail-sub">ラッシュ終了…</div>}
-        {kind === "timeout" && <div className="fail-sub">時間切れ…</div>}
+        {revived ? (
+          <div className="fail-sub revive-sub">ラッシュ継続!</div>
+        ) : (
+          <>
+            {kind === "kakuhenEnd" && <div className="fail-sub">ラッシュ終了…</div>}
+            {kind === "timeout" && <div className="fail-sub">時間切れ…</div>}
+            {showPenalty && (
+              <div className="fail-penalty">
+                <span className="ball" />
+                <span className="fail-penalty-num">−{penalty}</span>
+                <span className="fail-penalty-unit">玉</span>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

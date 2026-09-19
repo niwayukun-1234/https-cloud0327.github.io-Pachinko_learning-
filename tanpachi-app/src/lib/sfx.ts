@@ -1,3 +1,21 @@
+// 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
+let currentSfx: HTMLAudioElement | null = null;
+
+/** 音源ファイルを再生する（前の音は止めて重ならないようにする） */
+export function playSfx(src: string): HTMLAudioElement {
+  if (currentSfx) {
+    currentSfx.pause();
+    currentSfx = null;
+  }
+  const audio = new Audio(src);
+  audio.volume = 1;
+  currentSfx = audio;
+  void audio.play().catch(() => {
+    /* 自動再生がブロックされた環境では無視 */
+  });
+  return audio;
+}
+
 // 外れっぽい効果音を Web Audio で合成する（追加アセット不要）。
 let ctx: AudioContext | null = null;
 

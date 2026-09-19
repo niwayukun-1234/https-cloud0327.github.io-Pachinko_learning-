@@ -6,6 +6,7 @@ import { useApp } from "../../store/AppContext";
 import correctSfx from "../../assets/correct.mp3";
 import kakuhenSfx from "../../assets/kakuhen.mp3";
 import tripleSfx from "../../assets/triple.mp3";
+import { playSfx } from "../../lib/sfx";
 import "./Correct.css";
 
 type LocState = {
@@ -14,6 +15,8 @@ type LocState = {
   bonus?: number;
   combo?: number;
   kakuhen?: boolean;
+  // 確変中の1回目の正解だけ専用BGM＆大きな演出にする
+  kakuhenFirst?: boolean;
   finished?: boolean;
 };
 
@@ -29,28 +32,11 @@ const KAKUHEN_FALLBACK_MS = 17000;
 const TRIPLE_FALLBACK_MS = 11000;
 
 /** 連続正解の回数を 1〜5 の演出レベルに変換 */
-function fxTier(combo: number, kakuhen: boolean) {
-  if (kakuhen) return 5;
+function fxTier(combo: number) {
   if (combo >= 8) return 4;
   if (combo >= 5) return 3;
   if (combo >= 3) return 2;
   return 1;
-}
-
-// 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
-let currentSfx: HTMLAudioElement | null = null;
-function playSfx(src: string): HTMLAudioElement {
-  if (currentSfx) {
-    currentSfx.pause();
-    currentSfx = null;
-  }
-  const audio = new Audio(src);
-  audio.volume = 1;
-  currentSfx = audio;
-  void audio.play().catch(() => {
-    /* 自動再生がブロックされた環境では無視 */
-  });
-  return audio;
 }
 
 export function Correct() {
@@ -62,21 +48,25 @@ export function Correct() {
     bonus = 0,
     combo = 1,
     kakuhen = false,
+    kakuhenFirst = false,
     finished = false,
   } = (loc.state as LocState | null) ?? {};
 
+  // 確変の1回目だけ専用BGM＆豪華演出。2回目以降は通常の正解演出・音にする。
+  const big = kakuhen && kakuhenFirst;
   const baseReward = Math.max(0, reward - bonus);
-  const tier = fxTier(combo, kakuhen);
+  // 確変中でも2回目以降は通常の演出レベルに戻す
+  const tier = big ? 5 : fxTier(combo);
   // 3連続正解（確変を除く）: 添付音楽を再生し、正解が一回転＋上から玉50個
   const isTriple = combo === 3 && !kakuhen;
 
   // 再生する効果音を決定
-  //  - 確変中: 確変用音源
+  //  - 確変の1回目: 確変用音源（長め）
   //  - 3連続正解: 添付音楽
-  //  - それ以外: 正解音
-  const sfx = kakuhen ? kakuhenSfx : isTriple ? tripleSfx : correctSfx;
-  // 音声が終わるまで正解の表記を保持するか（確変時 / 3連続正解時）
-  const holdUntilSoundEnds = kakuhen || isTriple;
+  //  - それ以外（確変2回目以降を含む）: 通常の正解音
+  const sfx = big ? kakuhenSfx : isTriple ? tripleSfx : correctSfx;
+  // 音声が終わるまで正解の表記を保持するか（確変1回目 / 3連続正解時）
+  const holdUntilSoundEnds = big || isTriple;
 
   const [displayed, setDisplayed] = useState(state.balls - reward);
   const [bonusRevealed, setBonusRevealed] = useState(false);
@@ -136,7 +126,7 @@ export function Correct() {
 
   // 自動的に次へ進む。
   //  - 通常: 2秒で進む
-  //  - 確変 / 3連続正解: 音声が終わるまで正解の表記を保持してから進む
+  //  - 確変1回目 / 3連続正解: 音声が終わるまで正解の表記を保持してから進む
   useEffect(() => {
     if (!holdUntilSoundEnds) {
       const t = window.setTimeout(next, HOLD_MS);
@@ -148,7 +138,7 @@ export function Correct() {
       done = true;
       next();
     };
-    const fallbackMs = kakuhen ? KAKUHEN_FALLBACK_MS : TRIPLE_FALLBACK_MS;
+    const fallbackMs = big ? KAKUHEN_FALLBACK_MS : TRIPLE_FALLBACK_MS;
     const timer = window.setTimeout(finish, fallbackMs);
     const audio = soundRef.current;
     const onEnded = () => finish();
@@ -157,17 +147,17 @@ export function Correct() {
       window.clearTimeout(timer);
       if (audio) audio.removeEventListener("ended", onEnded);
     };
-  }, [holdUntilSoundEnds, kakuhen, next]);
+  }, [holdUntilSoundEnds, big, next]);
 
   // コンボ/確変が進むほど演出がどんどん豪華になる
   const intensity = useMemo(
     () => ({
-      sparkles: 40 + combo * 12 + (kakuhen ? 40 : 0),
+      sparkles: 40 + combo * 12 + (big ? 40 : 0),
       petals: 8 + combo * 4,
-      coins: 24 + combo * 6 + (kakuhen ? 30 : 0),
-      rings: 3 + Math.min(combo, 6) + (kakuhen ? 3 : 0),
+      coins: 24 + combo * 6 + (big ? 30 : 0),
+      rings: 3 + Math.min(combo, 6) + (big ? 3 : 0),
     }),
-    [combo, kakuhen],
+    [combo, big],
   );
 
   // 舞い上がるコイン（毎回ランダム）
@@ -199,7 +189,7 @@ export function Correct() {
   );
 
   return (
-    <div className={`correct tier-${tier}${kakuhen ? " kakuhen" : ""}`}>
+    <div className={`correct tier-${tier}${big ? " kakuhen" : ""}`}>
       <Fx rays sparkles={intensity.sparkles} petals={intensity.petals} />
 
       {/* 上から降ってくるパチンコ玉 */}
@@ -246,7 +236,7 @@ export function Correct() {
         </div>
       )}
       {tier >= 4 && <div className="correct-rainbow" aria-hidden />}
-      {kakuhen && <div className="correct-kakuhen-flash" aria-hidden />}
+      {big && <div className="correct-kakuhen-flash" aria-hidden />}
       <div className="correct-confetti" aria-hidden>
         {coins.map((c) => (
           <span
@@ -264,8 +254,8 @@ export function Correct() {
       </div>
 
       <div className="correct-body">
-        {kakuhen && <div className="correct-kakuhen-badge">確変!</div>}
-        {!kakuhen && combo >= 2 && (
+        {big && <div className="correct-kakuhen-badge">確変!</div>}
+        {!big && combo >= 2 && (
           <div className={`correct-combo tier-${tier}`}>
             <span className="combo-label">連続正解</span>
             <span className="combo-num">
@@ -275,7 +265,9 @@ export function Correct() {
           </div>
         )}
         <div className="correct-title-wrap">
-          <div className={`correct-title-rot${kakuhen ? " spin" : ""}${isTriple ? " one-spin" : ""}`}>
+          <div
+            className={`correct-title-rot${big ? " spin" : ""}${isTriple ? " one-spin" : ""}`}
+          >
             <h1 className="correct-title brush">正解!</h1>
           </div>
         </div>

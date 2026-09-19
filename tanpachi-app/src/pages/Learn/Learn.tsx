@@ -13,6 +13,10 @@ const SESSION_KEY = "tanpachi:session";
 // 問題の制限時間（6秒）。時間切れは不正解扱い。
 const QUESTION_MS = 6000;
 
+// 不正解・未回答で減る玉数（連続で間違えるほど増える）
+const PENALTY_BASE = 10;
+const PENALTY_MAX = 50;
+
 // 確変: 4〜7連続正解の間でランダムに到来し、2〜3問以内（1問ミスでも即終了）で終わる。
 const KAKUHEN_BONUS = 100;
 const KAKUHEN_MIN_COMBO = 4;
@@ -20,10 +24,14 @@ const KAKUHEN_MAX_COMBO = 7;
 const KAKUHEN_MIN_LEN = 2;
 const KAKUHEN_MAX_LEN = 3;
 
+// 確変終了のタイミングで「終了かと思いきや確変突入」に切り替わる確率
+const REVIVE_CHANCE = 0.5;
+
 type Session = {
   index: number;
   order: string[];
   combo?: number;
+  missStreak?: number; // 連続不正解数（減算玉数の増加に使用）
   kakuhen?: boolean;
   kakuhenAt?: number; // 確変が到来する連続正解数（4〜7）
   kakuhenLen?: number; // 確変の継続問題数（2〜3）
@@ -73,6 +81,7 @@ function loadSession(): Session {
     index: 0,
     order: order.slice(0, TOTAL),
     combo: 0,
+    missStreak: 0,
     kakuhen: false,
     kakuhenAt: randInt(KAKUHEN_MIN_COMBO, KAKUHEN_MAX_COMBO),
     kakuhenLen: 0,
@@ -109,26 +118,36 @@ export function Learn() {
     window.speechSynthesis.speak(u);
   }, [word]);
 
-  // 不正解 / 時間切れ → 失敗演出へ
+  // 不正解 / 時間切れ → 失敗演出へ（玉が減る）
   const goFail = useCallback(
     (kind: "miss" | "timeout") => {
       const cur = liveRef.current.session;
       const w = liveRef.current.word;
       const wasKakuhen = cur.kakuhen ?? false;
-      answer(w.id, false, 0);
+      // 連続不正解数に応じて減算量を増やす
+      const missStreak = (cur.missStreak ?? 0) + 1;
+      const penalty = Math.min(PENALTY_BASE * missStreak, PENALTY_MAX);
+      // 確変中に外した場合も「確変が終わるタイミング」。
+      // 1/2 の確率で「終了かと思いきや確変突入」に切り替えて継続する。
+      const revive = wasKakuhen && Math.random() < REVIVE_CHANCE;
+      answer(w.id, false, 0, penalty);
+
       const next: Session = {
         ...cur,
         index: cur.index + 1,
         combo: 0,
-        kakuhen: false,
+        missStreak,
+        kakuhen: revive,
+        kakuhenLen: revive ? randInt(KAKUHEN_MIN_LEN, KAKUHEN_MAX_LEN) : cur.kakuhenLen,
         kakuhenCount: 0,
       };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
       navigate("/learn/fail", {
         state: {
-          // 確変中に外した場合は「確変終了」演出
           kind: kind === "timeout" ? "timeout" : wasKakuhen ? "kakuhenEnd" : "miss",
           finished: next.index >= TOTAL,
+          penalty,
+          revive,
         },
       });
     },
@@ -182,6 +201,7 @@ export function Learn() {
         ? 1
         : 0;
     let kakuhenEnded = false;
+    let kakuhenRevive = false;
     let order = session.order;
 
     if (entering) {
@@ -190,13 +210,22 @@ export function Learn() {
       const remaining = TOTAL - (session.index + 1);
       order = [...session.order.slice(0, session.index + 1), ...hardFirst(remaining)];
     } else if (wasKakuhen && kakuhenCount >= kakuhenLen) {
-      // 確変が規定回数に達して終了
-      kakuhen = false;
-      kakuhenEnded = true;
+      // 確変が規定回数に達して終了タイミング。
+      // 1/2 の確率で「終了かと思いきや確変突入」に切り替えて継続する。
+      if (Math.random() < REVIVE_CHANCE) {
+        kakuhen = true;
+        kakuhenLen = randInt(KAKUHEN_MIN_LEN, KAKUHEN_MAX_LEN);
+        kakuhenCount = 0;
+        kakuhenRevive = true;
+      } else {
+        kakuhen = false;
+        kakuhenEnded = true;
+      }
     }
 
     const bonus = activeThisQ ? KAKUHEN_BONUS : 0;
     const reward = REWARD * combo + bonus;
+    // 連続正解でミス連続が途切れる
     answer(word.id, true, reward);
 
     const next: Session = {
@@ -204,6 +233,7 @@ export function Learn() {
       index: session.index + 1,
       order,
       combo,
+      missStreak: 0,
       kakuhen,
       kakuhenAt,
       kakuhenLen,
@@ -211,10 +241,14 @@ export function Learn() {
     };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
 
-    // 確変が規定回数に達して終了した場合は「確変終了」の失敗演出へ
-    if (kakuhenEnded) {
+    // 確変終了（or 終了かと思いきや突入）の演出へ
+    if (kakuhenEnded || kakuhenRevive) {
       navigate("/learn/fail", {
-        state: { kind: "kakuhenEnd", finished: next.index >= TOTAL },
+        state: {
+          kind: "kakuhenEnd",
+          finished: next.index >= TOTAL,
+          revive: kakuhenRevive,
+        },
       });
       return;
     }
@@ -227,7 +261,8 @@ export function Learn() {
         bonus,
         combo,
         kakuhen,
-        kakuhenEnded,
+        // 確変中の1回目だけ専用BGMで大きく演出する
+        kakuhenFirst: kakuhen && kakuhenCount === 1,
         finished: next.index >= TOTAL,
       },
     });
