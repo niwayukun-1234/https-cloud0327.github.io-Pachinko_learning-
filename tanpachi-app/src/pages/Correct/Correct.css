@@ -426,7 +426,166 @@
   margin-bottom: 4px;
 }
 
+/* ---------- 獲得玉数分あふれるパチンコ玉 ---------- */
+.correct-ball-flood {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.flood-ball {
+  position: absolute;
+  bottom: -34px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(255, 255, 255, 0.35);
+  animation: flood-up linear infinite;
+}
+
+/* ---------- 確変 ---------- */
+.correct-kakuhen-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.95), rgba(255, 190, 60, 0.5) 40%, transparent 76%);
+  mix-blend-mode: screen;
+  animation: kakuhen-flash 0.3s steps(2, jump-none) infinite;
+}
+
+.correct-kakuhen-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 26px;
+  margin-bottom: 6px;
+  border-radius: 16px;
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: linear-gradient(90deg, #ff2a3d, #ff7a3d, #ffd24a, #ff7a3d, #ff2a3d);
+  background-size: 300% 100%;
+  border: 3px solid #fff;
+  text-shadow: 0 3px 0 #6a0008, 0 0 20px rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 34px rgba(255, 90, 60, 1), 0 0 10px rgba(255, 255, 255, 0.9);
+  animation:
+    combo-slam 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    title-shake 0.3s ease-in-out infinite,
+    kakuhen-rainbow 1.4s linear infinite;
+}
+
+.correct.kakuhen .correct-title {
+  font-size: 100px;
+}
+
+.correct.tier-5 .correct-strobe {
+  animation-duration: 0.16s, 0.06s;
+}
+.correct.tier-5 .correct-flash {
+  animation-duration: 0.06s;
+}
+.correct.tier-5 .correct-rays-fast {
+  animation-duration: 2s;
+}
+.correct.tier-5 .correct-burst {
+  animation-duration: 0.4s, 0.28s;
+}
+
+/* ---------- 確変ボーナス表示 ---------- */
+.correct-bonus {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 6px 20px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 214, 74, 0.95), rgba(255, 122, 61, 0.95));
+  border: 2px solid #fff;
+  box-shadow: 0 0 26px rgba(255, 190, 60, 1);
+  opacity: 0;
+}
+
+.correct-bonus.show {
+  animation: bonus-reveal 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both, bonus-glow 0.6s ease-in-out 0.7s infinite;
+}
+
+.correct-bonus .bonus-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4a1a00;
+}
+
+.correct-bonus .bonus-num {
+  font-size: 44px;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+  text-shadow: 0 3px 0 #7a1020, 0 0 18px rgba(255, 255, 255, 0.9);
+}
+
+.correct-bonus .bonus-unit {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4a1a00;
+}
+
 /* ---------- keyframes ---------- */
+
+@keyframes flood-up {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-460px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes kakuhen-flash {
+  0% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes kakuhen-rainbow {
+  to {
+    background-position: 300% 0;
+  }
+}
+
+@keyframes bonus-reveal {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes bonus-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 18px rgba(255, 190, 60, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 255, 255, 1);
+  }
+}
 
 @keyframes correct-bg-flash {
   0%,

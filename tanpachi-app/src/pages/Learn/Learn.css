@@ -89,6 +89,78 @@
   }
 }
 
+/* 確変まで残りカウントダウン */
+.learn-kakuhen-count {
+  align-self: center;
+  padding: 7px 20px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #ff3b4d, #8a0b18);
+  border: 2px solid #ffd8dd;
+  box-shadow: 0 0 20px rgba(214, 26, 43, 0.85);
+  animation:
+    kakuhen-count-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    kakuhen-count-pulse 0.9s ease-in-out infinite;
+}
+
+.learn-kakuhen-count b {
+  font-size: 24px;
+  margin: 0 3px;
+  color: #fff3b0;
+  text-shadow: 0 0 12px rgba(255, 220, 120, 1);
+}
+
+/* 確変中バッジ */
+.learn-kakuhen-badge {
+  align-self: center;
+  padding: 7px 22px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #1a0a04;
+  background: linear-gradient(90deg, #ffd24a, #ff7a3d, #ffd24a, #ff7a3d);
+  background-size: 300% 100%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 26px rgba(255, 190, 60, 1);
+  animation:
+    kakuhen-count-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    kakuhen-rainbow 1.6s linear infinite,
+    plus-blink 0.5s steps(2, jump-none) infinite;
+}
+
+@keyframes kakuhen-count-in {
+  0% {
+    transform: scale(0.4) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes kakuhen-count-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 16px rgba(214, 26, 43, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(255, 90, 110, 1);
+  }
+}
+
+@keyframes kakuhen-rainbow {
+  to {
+    background-position: 300% 0;
+  }
+}
+
 .learn-word {
   text-align: center;
   margin-top: 8px;

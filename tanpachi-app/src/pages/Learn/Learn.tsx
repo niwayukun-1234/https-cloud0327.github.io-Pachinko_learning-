@@ -11,7 +11,11 @@ const TOTAL = 10;
 const REWARD = 10;
 const SESSION_KEY = "tanpachi:session";
 
-type Session = { index: number; order: string[]; combo?: number };
+// 7問連続正解で「確変」突入。確変中は毎回ボーナス玉が加算される。
+const KAKUHEN_AT = 7;
+const KAKUHEN_BONUS = 100;
+
+type Session = { index: number; order: string[]; combo?: number; kakuhen?: boolean };
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -38,7 +42,7 @@ function loadSession(): Session {
   // Always start with "challenge" like the mock
   const first = order.indexOf("challenge");
   if (first > 0) [order[0], order[first]] = [order[first], order[0]];
-  const s = { index: 0, order: order.slice(0, TOTAL), combo: 0 };
+  const s = { index: 0, order: order.slice(0, TOTAL), combo: 0, kakuhen: false };
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
   return s;
 }
@@ -73,13 +77,25 @@ export function Learn() {
     if (isRight) {
       // 連続正解コンボ。コンボが伸びるほど獲得玉数が増える。
       const combo = (session.combo ?? 0) + 1;
-      const reward = REWARD * combo;
+      // 7問連続で確変突入。以後は確変が継続する。
+      const kakuhenTrigger = combo === KAKUHEN_AT;
+      const kakuhen = (session.kakuhen ?? false) || combo >= KAKUHEN_AT;
+      const bonus = kakuhen ? KAKUHEN_BONUS : 0;
+      const reward = REWARD * combo + bonus;
       answer(word.id, true, reward);
-      const next: Session = { ...session, index: session.index + 1, combo };
+      const next: Session = { ...session, index: session.index + 1, combo, kakuhen };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
       // 正解した瞬間に正解画面へ（タイムラグなし）
       navigate("/learn/correct", {
-        state: { word: word.word, reward, combo, finished: next.index >= TOTAL },
+        state: {
+          word: word.word,
+          reward,
+          bonus,
+          combo,
+          kakuhen,
+          kakuhenTrigger,
+          finished: next.index >= TOTAL,
+        },
       });
       return;
     }
@@ -99,6 +115,10 @@ export function Learn() {
       setSession(loadSession());
     }
   };
+
+  const remaining = KAKUHEN_AT - (session.combo ?? 0);
+  // 確変まで残り4問を切ったらカウントダウン表示
+  const showCountdown = !session.kakuhen && remaining >= 1 && remaining <= 4;
 
   return (
     <div className="learn">
@@ -122,11 +142,19 @@ export function Learn() {
           </span>
         </div>
 
-        {session.combo ? (
+        {session.combo && !session.kakuhen ? (
           <div className="learn-combo" key={session.combo}>
             連続正解 <b>{session.combo}</b> 回
           </div>
         ) : null}
+
+        {showCountdown ? (
+          <div className="learn-kakuhen-count" key={`k${remaining}`}>
+            確変まで残り<b>{remaining}</b>問
+          </div>
+        ) : null}
+
+        {session.kakuhen ? <div className="learn-kakuhen-badge">確変中!</div> : null}
 
         <div className="learn-word">
           <h1>{word.word}</h1>
