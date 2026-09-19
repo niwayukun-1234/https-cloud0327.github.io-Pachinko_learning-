@@ -18,12 +18,38 @@
   overflow: hidden;
 }
 
+/* 親側の全称セレクタ（例: PachinkoMode.css の `.pachi > *`）は
+   同じ詳細度(0,1,0)で position: relative を当ててくるため、
+   読み込み順に依存せず「必ず全画面オーバーレイ」を維持できるよう詳細度を上げる。
+   ※ モーダルは常に台の手前に出す必要があるので、ここは上書きが必須。 */
+.quiz-overlay.quiz-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+}
+
 @keyframes quiz-fade {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
+  }
+}
+
+/* 四択 → 正誤 → パチンコ へ戻る際の短いフェード。
+   閉じた瞬間に消すのではなく、パチンコ演出の上を軽く重ねて譲る。 */
+.quiz-overlay.is-closing {
+  animation: quiz-leave 0.2s ease both;
+  pointer-events: none;
+}
+
+@keyframes quiz-leave {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -364,6 +390,10 @@
 /* ---------- 判定バナー(問題と4択の間に差し込む) ---------- */
 .quiz-verdict {
   flex-shrink: 0;
+  /* 選択肢(.quiz-choice)は position: relative で描画されるため、
+     判定バナーも同じ土俵に上げないと選択肢の背後に隠れてしまう */
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;

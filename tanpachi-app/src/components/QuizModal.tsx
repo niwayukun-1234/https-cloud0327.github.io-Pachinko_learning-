@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { QuizQuestion } from "../data/toeicQuiz";
 import type { QuizJudgement } from "../hooks/usePachinkoSpin";
 import { Fx } from "./Fx";
@@ -59,7 +59,33 @@ export function QuizModal({
     if (question) speak(question.word);
   }, [question]);
 
-  if (!visible || !question) return null;
+  // 閉じるときだけ少し残してフェードアウトさせる。
+  // 「四択が消えて別画面(パチンコ)が出る」という機械的な切り替えに見せず、
+  // 正誤 → パチンコ演出 をクロスフェードでつなぐための最小限の処理。
+  //
+  // visible の変化は render 中に検知して即座に state を合わせる
+  // (React 公式の「prop が変わったときに state を調整する」パターン)。
+  // effect 内で同期 setState すると再レンダーが1フレーム遅れ、
+  // 四択が一瞬消えて再表示されるちらつきの原因になるため避けている。
+  const [stage, setStage] = useState<"hidden" | "open" | "closing">(visible ? "open" : "hidden");
+  const [prevVisible, setPrevVisible] = useState(visible);
+
+  if (prevVisible !== visible) {
+    setPrevVisible(visible);
+    setStage(visible ? "open" : "closing");
+  }
+
+  // フェードアウトを見せ切ってから実際に外す。
+  // ここは「タイマーを張るだけ」で、setState はコールバック(非同期)内のみ。
+  useEffect(() => {
+    if (stage !== "closing") return;
+    const t = window.setTimeout(() => setStage("hidden"), 200);
+    return () => window.clearTimeout(t);
+  }, [stage]);
+
+  const closing = stage === "closing";
+
+  if (stage === "hidden" || !question) return null;
 
   const isJudged = judgement !== null;
   const locked = disabled || isJudged;
@@ -68,7 +94,12 @@ export function QuizModal({
   const reels = isJudged ? (judgement.correct ? ["7", "7", "7"] : ["3", "4", "8"]) : ["英", "単", "語"];
 
   return (
-    <div className="quiz-overlay" role="dialog" aria-modal="true" aria-label={title}>
+    <div
+      className={`quiz-overlay${closing ? " is-closing" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
       <div className={`quiz-cabinet ${isJudged ? (judgement.correct ? "is-win" : "is-lose") : ""}`}>
         <Fx sparkles={isJudged && judgement.correct ? 26 : 10} petals={isJudged && judgement.correct ? 8 : 0} />
         {isJudged && judgement.correct && <div className="quiz-flash" aria-hidden />}
