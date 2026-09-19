@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, BookOpen, Flame, Pachinko, User } from "../components/Icons";
-import { TabBar } from "../components/TabBar";
-import { accuracy, useApp } from "../store/AppContext";
-import { BallCounter } from "../components/BallCounter";
+import { Bell, BookOpen, Flame, Pachinko, User } from "../../components/Icons";
+import { TabBar } from "../../components/TabBar";
+import { accuracy, useApp } from "../../store/AppContext";
+import { BallCounter } from "../../components/BallCounter";
 import "./Home.css";
 
 export function Home() {

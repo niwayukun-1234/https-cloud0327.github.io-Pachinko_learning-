@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { Header } from "../components/Header";
-import { Play, Star } from "../components/Icons";
-import { TabBar } from "../components/TabBar";
-import { WORDS } from "../data/words";
-import { useApp } from "../store/AppContext";
+import { Header } from "../../components/Header";
+import { Play, Star } from "../../components/Icons";
+import { TabBar } from "../../components/TabBar";
+import { WORDS } from "../../data/words";
+import { useApp } from "../../store/AppContext";
 import "./Words.css";
 
 type Filter = "all" | "learned" | "weak";

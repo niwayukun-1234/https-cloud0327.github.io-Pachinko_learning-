@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Fx } from "../components/Fx";
-import { Header } from "../components/Header";
-import { Gear, Speaker } from "../components/Icons";
-import { WORDS } from "../data/words";
-import { useApp } from "../store/AppContext";
+import { Fx } from "../../components/Fx";
+import { Header } from "../../components/Header";
+import { Gear, Speaker } from "../../components/Icons";
+import { WORDS } from "../../data/words";
+import { useApp } from "../../store/AppContext";
 import "./Learn.css";
 
 const TOTAL = 10;

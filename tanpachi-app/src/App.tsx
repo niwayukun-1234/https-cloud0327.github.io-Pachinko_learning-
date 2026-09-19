@@ -1,16 +1,16 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Device } from "./components/Device";
-import { Welcome } from "./pages/Welcome";
-import { Home } from "./pages/Home";
-import { Learn } from "./pages/Learn";
-import { Correct } from "./pages/Correct";
-import { PachinkoMode } from "./pages/PachinkoMode";
-import { Rewards } from "./pages/Rewards";
-import { Words } from "./pages/Words";
-import { Records } from "./pages/Records";
-import { MyPage } from "./pages/MyPage";
-import { MenuPage } from "./pages/MenuPage";
-import { BallHistory } from "./pages/BallHistory";
+import { Welcome } from "./pages/Welcome/Welcome";
+import { Home } from "./pages/Home/Home";
+import { Learn } from "./pages/Learn/Learn";
+import { Correct } from "./pages/Correct/Correct";
+import { PachinkoMode } from "./pages/PachinkoMode/PachinkoMode";
+import { Rewards } from "./pages/Rewards/Rewards";
+import { Words } from "./pages/Words/Words";
+import { Records } from "./pages/Records/Records";
+import { MyPage } from "./pages/MyPage/MyPage";
+import { MenuPage } from "./pages/MenuPage/MenuPage";
+import { BallHistory } from "./pages/BallHistory/BallHistory";
 
 export default function App() {
   return (

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Header } from "../components/Header";
-import { ChevronRight, User } from "../components/Icons";
-import { MenuIcon } from "../components/MenuIcon";
-import { MYPAGE_ITEMS } from "../data/rewards";
-import { useApp } from "../store/AppContext";
+import { Header } from "../../components/Header";
+import { ChevronRight, User } from "../../components/Icons";
+import { MenuIcon } from "../../components/MenuIcon";
+import { MYPAGE_ITEMS } from "../../data/rewards";
+import { useApp } from "../../store/AppContext";
 import "./MyPage.css";
 
 export function MyPage() {

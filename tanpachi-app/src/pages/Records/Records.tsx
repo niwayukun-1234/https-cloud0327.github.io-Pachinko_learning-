@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { Header } from "../components/Header";
-import { ChevronLeft, ChevronRight } from "../components/Icons";
-import { accuracy, useApp } from "../store/AppContext";
+import { Header } from "../../components/Header";
+import { ChevronLeft, ChevronRight } from "../../components/Icons";
+import { accuracy, useApp } from "../../store/AppContext";
 import "./Records.css";
 
 type Range = "day" | "week" | "month";

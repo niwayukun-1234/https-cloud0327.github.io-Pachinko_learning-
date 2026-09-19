@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { BallCounter } from "../components/BallCounter";
-import { Header } from "../components/Header";
-import { REWARDS } from "../data/rewards";
-import { useApp } from "../store/AppContext";
-import type { Reward, RewardCategory } from "../types";
+import { BallCounter } from "../../components/BallCounter";
+import { Header } from "../../components/Header";
+import { REWARDS } from "../../data/rewards";
+import { useApp } from "../../store/AppContext";
+import type { Reward, RewardCategory } from "../../types";
 import "./Rewards.css";
 
 const CATS: { key: RewardCategory; label: string }[] = [

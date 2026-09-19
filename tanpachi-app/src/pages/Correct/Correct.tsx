@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BallCounter } from "../components/BallCounter";
-import { Fx } from "../components/Fx";
-import { useApp } from "../store/AppContext";
+import { BallCounter } from "../../components/BallCounter";
+import { Fx } from "../../components/Fx";
+import { useApp } from "../../store/AppContext";
 import "./Correct.css";
 
 type LocState = { word?: string; reward?: number; finished?: boolean };

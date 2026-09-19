@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { Fx } from "../components/Fx";
-import { Logo } from "../components/Logo";
+import { Fx } from "../../components/Fx";
+import { Logo } from "../../components/Logo";
 import "./Welcome.css";
 
 export function Welcome() {

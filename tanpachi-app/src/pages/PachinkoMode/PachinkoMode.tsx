@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Fx } from "../components/Fx";
-import { Gear } from "../components/Icons";
-import { Logo } from "../components/Logo";
-import { useApp } from "../store/AppContext";
+import { Fx } from "../../components/Fx";
+import { Gear } from "../../components/Icons";
+import { Logo } from "../../components/Logo";
+import { useApp } from "../../store/AppContext";
 import "./PachinkoMode.css";
 
 const SPIN_COST = 10;

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "../components/Header";
-import { ChevronRight, Gift, Trophy, User } from "../components/Icons";
-import { MenuIcon } from "../components/MenuIcon";
-import { TabBar } from "../components/TabBar";
-import { MENU_ITEMS } from "../data/rewards";
+import { Header } from "../../components/Header";
+import { ChevronRight, Gift, Trophy, User } from "../../components/Icons";
+import { MenuIcon } from "../../components/MenuIcon";
+import { TabBar } from "../../components/TabBar";
+import { MENU_ITEMS } from "../../data/rewards";
 import "./MenuPage.css";
 
 export function MenuPage() {

@@ -1,6 +1,6 @@
-import { BallCounter } from "../components/BallCounter";
-import { Header } from "../components/Header";
-import { useApp } from "../store/AppContext";
+import { BallCounter } from "../../components/BallCounter";
+import { Header } from "../../components/Header";
+import { useApp } from "../../store/AppContext";
 import "./BallHistory.css";
 
 const fmt = (iso: string) => {
