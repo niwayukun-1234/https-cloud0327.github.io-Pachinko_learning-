@@ -6,6 +6,7 @@ import {
   type CSSProperties,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import { Home } from "../../components/Icons";
 import { QuizModal } from "../../components/QuizModal";
 import { QUIZ_TITLE } from "../../data/toeicQuiz";
 import { accuracy, useApp } from "../../store/AppContext";
@@ -43,7 +44,7 @@ export function PachinkoMode() {
   const [reduced, setReduced] = useState(
     () => matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
-  const [modal, setModal] = useState<"menu" | "settings" | null>(null);
+  const [modal, setModal] = useState<"settings" | null>(null);
   const [showProgress, setShowProgress] = useState(false);
   const [volume, setVolume] = useState(0.55);
   const [voice, setVoice] = useState(true);
@@ -140,12 +141,15 @@ export function PachinkoMode() {
             </strong>
           </div>
           <button
-            className="utility"
-            onClick={() => setModal("menu")}
-            aria-label="メニュー"
+            className="utility home"
+            onClick={() => navigate("/home")}
+            aria-label="ホームに戻る"
+            title="ホームに戻る"
           >
-            <b>☷</b>
-            <span>メニュー</span>
+            <b>
+              <Home size={20} />
+            </b>
+            <span>ホーム</span>
           </button>
           <button
             className="utility"
@@ -460,7 +464,7 @@ export function PachinkoMode() {
               className="modal"
               role="dialog"
               aria-modal="true"
-              aria-label={modal === "menu" ? "花舞メニュー" : "演出設定"}
+              aria-label="演出設定"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -470,106 +474,54 @@ export function PachinkoMode() {
               >
                 閉じる ×
               </button>
-              <h2>{modal === "menu" ? "花舞メニュー" : "演出設定"}</h2>
-              {modal === "menu" ? (
-                <>
-                  <button
-                    className="preview"
-                    onClick={() => {
-                      setModal(null);
-                      setShowProgress(true);
-                    }}
-                  >
-                    途中結果を見る（ゲームは続きます）
-                  </button>
-                  <p>
-                    総回転 {state.totalSpins}回 ／ 大当たり {state.jackpots}回
-                    ／ 連続正解 {state.streak}連
-                  </p>
-                  <p>
-                    1回転10玉。英単語に回答すると回転が確定します。クイズの正誤は学習記録に反映され、大当たりは正誤とは独立に抽選されます。
-                  </p>
-                  <p>
-                    通常は1/5で1,000玉。当たり後は5回転の桜RUSHへ。RUSH中は1/2で1,500玉、再当選で残り5回転に戻ります。画面を離れるとRUSHは終了します。
-                  </p>
-                  <p>
-                    回答前に画面を離れた回転は未確定です。回答後の玉・学習記録は演出途中でも保存されます。カットインやPUSHのタイミングは抽選確率を変えません。
-                  </p>
-                  <button
-                    className="preview"
-                    disabled={busy}
-                    onClick={() => {
-                      setModal(null);
-                      setAuto(false);
-                      start(true);
-                    }}
-                  >
-                    ✧ 大当たり演出を体験（記録に影響なし）
-                  </button>
-                  <div className="menu-links">
-                    <button onClick={() => navigate("/home")}>ホームへ</button>
-                    <button onClick={() => navigate("/learn")}>
-                      英単語を学んで玉を集める
-                    </button>
-                    <button onClick={() => navigate("/rewards")}>
-                      景品交換
-                    </button>
-                    <button onClick={() => navigate("/mypage")}>
-                      マイページ
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <label className="setting-row">
-                    サウンド
-                    <input
-                      type="checkbox"
-                      checked={sound}
-                      onChange={(e) => toggleSound(e.target.checked)}
-                    />
-                  </label>
-                  <label className="setting-row">
-                    音量 {Math.round(volume * 100)}%
-                    <input
-                      aria-label="音量"
-                      type="range"
-                      min="0"
-                      max="1"
-                      step=".05"
-                      value={volume}
-                      onChange={(e) => {
-                        const v = Number(e.target.value);
-                        setVolume(v);
-                        audio.current.setVolume(v);
-                      }}
-                    />
-                  </label>
-                  <label className="setting-row">
-                    掛け声
-                    <input
-                      type="checkbox"
-                      checked={voice}
-                      onChange={(e) => {
-                        setVoice(e.target.checked);
-                        audio.current.voice = e.target.checked;
-                        if (!e.target.checked) audio.current.stopSpeech();
-                      }}
-                    />
-                  </label>
-                  <label className="setting-row">
-                    動きを抑える
-                    <input
-                      type="checkbox"
-                      checked={reduced}
-                      onChange={(e) => setReduced(e.target.checked)}
-                    />
-                  </label>
-                  <p>
-                    掛け声は端末の日本語音声です。英単語の出題中は掛け声を止め、発音を聞けるようにしています。
-                  </p>
-                </>
-              )}
+              <h2>演出設定</h2>
+              <label className="setting-row">
+                サウンド
+                <input
+                  type="checkbox"
+                  checked={sound}
+                  onChange={(e) => toggleSound(e.target.checked)}
+                />
+              </label>
+              <label className="setting-row">
+                音量 {Math.round(volume * 100)}%
+                <input
+                  aria-label="音量"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step=".05"
+                  value={volume}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setVolume(v);
+                    audio.current.setVolume(v);
+                  }}
+                />
+              </label>
+              <label className="setting-row">
+                掛け声
+                <input
+                  type="checkbox"
+                  checked={voice}
+                  onChange={(e) => {
+                    setVoice(e.target.checked);
+                    audio.current.voice = e.target.checked;
+                    if (!e.target.checked) audio.current.stopSpeech();
+                  }}
+                />
+              </label>
+              <label className="setting-row">
+                動きを抑える
+                <input
+                  type="checkbox"
+                  checked={reduced}
+                  onChange={(e) => setReduced(e.target.checked)}
+                />
+              </label>
+              <p>
+                掛け声は端末の日本語音声です。英単語の出題中は掛け声を止め、発音を聞けるようにしています。
+              </p>
             </section>
           </div>
         )}
