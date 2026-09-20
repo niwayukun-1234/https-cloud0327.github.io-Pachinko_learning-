@@ -17,9 +17,9 @@ import { useApp } from "../../store/AppContext";
 import type { LearnSessionResult, SessionAnswer } from "../../types";
 import "./Learn.css";
 
-const TOTAL = 10;
-const REWARD = 10;
-const SESSION_KEY = "tanpachi:session";
+const TOTAL = LEARN_TOTAL;
+const REWARD = LEARN_REWARD;
+const SESSION_KEY = LEARN_SESSION_KEY;
 // 問題の制限時間（6秒）。時間切れは不正解扱い。
 const QUESTION_MS = 6000;
 
@@ -40,12 +40,18 @@ const REVIVE_CHANCE = 0.5;
 type Session = {
   index: number;
   order: string[];
-  combo?: number;
-  missStreak?: number; // 連続不正解数（減算玉数の増加に使用）
-  kakuhen?: boolean;
-  kakuhenAt?: number; // 確変が到来する連続正解数（4〜7）
-  kakuhenLen?: number; // 確変の継続問題数（2〜3）
-  kakuhenCount?: number; // 確変中に答えた問題数
+  /** 解答済みの記録（リザルト画面の入力になる） */
+  answers: SessionAnswer[];
+  /** セッション開始時刻 (epoch ms) */
+  startedAt: number;
+  /** セッション内で獲得した玉の合計 */
+  earnedBalls: number;
+  combo: number;
+  missStreak: number; // 連続不正解数（減算玉数の増加に使用）
+  kakuhen: boolean;
+  kakuhenAt: number; // 確変が到来する連続正解数（4〜7）
+  kakuhenLen: number; // 確変の継続問題数（2〜3）
+  kakuhenCount: number; // 確変中に答えた問題数
 };
 
 function randInt(min: number, max: number) {
@@ -66,6 +72,32 @@ function takeReviewIds(): string[] {
   }
 }
 
+function createSession(): Session {
+  // リザルト画面から引き継いだ「間違えた単語」があれば、それを優先して出題する
+  const reviewIds = takeReviewIds();
+  const source = reviewIds.length > 0 ? reviewIds : WORDS.map((w) => w.id);
+  const order: string[] = [];
+  while (order.length < TOTAL) order.push(...shuffle(source));
+
+  // 通常セッションは既存どおり "challenge" から始める
+  const first = order.indexOf("challenge");
+  if (first > 0) [order[0], order[first]] = [order[first], order[0]];
+
+  return {
+    index: 0,
+    order: order.slice(0, TOTAL),
+    answers: [],
+    startedAt: Date.now(),
+    earnedBalls: 0,
+    combo: 0,
+    missStreak: 0,
+    kakuhen: false,
+    kakuhenAt: randInt(KAKUHEN_MIN_COMBO, KAKUHEN_MAX_COMBO),
+    kakuhenLen: 0,
+    kakuhenCount: 0,
+  };
+}
+
 /** 残り問題を「難しい問題優先」の並びに組み替える（確変中用） */
 function hardFirst(count: number): string[] {
   const hard = WORDS.filter((w) => w.difficulty === "hard").map((w) => w.id);
@@ -76,34 +108,52 @@ function hardFirst(count: number): string[] {
   return out.slice(0, count);
 }
 
-function loadSession(): Session {
+/** sessionStorage に保存済みのセッションを読み、旧形式も現在の形へ補完する */
+function readSession(): Session | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    const s = JSON.parse(raw) as Session;
-    // 旧形式のセッションには answers / startedAt が無いため補う
-    return { ...s, answers: s.answers ?? [], startedAt: s.startedAt ?? Date.now() };
+    const saved = JSON.parse(raw) as Partial<Session>;
+    if (!Array.isArray(saved.order) || saved.order.length === 0) return null;
+    if (!Number.isInteger(saved.index) || (saved.index ?? -1) < 0) return null;
+
+    const order = saved.order.filter(
+      (id): id is string => typeof id === "string" && WORDS.some((word) => word.id === id),
+    );
+    if (order.length === 0) return null;
+
+    const answers = Array.isArray(saved.answers) ? saved.answers : [];
+    return {
+      index: Math.min(saved.index ?? 0, order.length),
+      order,
+      answers,
+      startedAt: typeof saved.startedAt === "number" ? saved.startedAt : Date.now(),
+      earnedBalls:
+        typeof saved.earnedBalls === "number"
+          ? saved.earnedBalls
+          : answers.filter((item) => item.correct).length * REWARD,
+      combo: typeof saved.combo === "number" ? saved.combo : 0,
+      missStreak: typeof saved.missStreak === "number" ? saved.missStreak : 0,
+      kakuhen: saved.kakuhen === true,
+      kakuhenAt:
+        typeof saved.kakuhenAt === "number"
+          ? saved.kakuhenAt
+          : randInt(KAKUHEN_MIN_COMBO, KAKUHEN_MAX_COMBO),
+      kakuhenLen: typeof saved.kakuhenLen === "number" ? saved.kakuhenLen : 0,
+      kakuhenCount: typeof saved.kakuhenCount === "number" ? saved.kakuhenCount : 0,
+    };
   } catch {
     return null;
   }
-  const ids = WORDS.map((w) => w.id);
-  const order: string[] = [];
-  while (order.length < TOTAL) order.push(...shuffle(ids));
-  // Always start with "challenge" like the mock
-  const first = order.indexOf("challenge");
-  if (first > 0) [order[0], order[first]] = [order[first], order[0]];
-  const s: Session = {
-    index: 0,
-    order: order.slice(0, TOTAL),
-    combo: 0,
-    missStreak: 0,
-    kakuhen: false,
-    kakuhenAt: randInt(KAKUHEN_MIN_COMBO, KAKUHEN_MAX_COMBO),
-    kakuhenLen: 0,
-    kakuhenCount: 0,
-  };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
-  return s;
+}
+
+function loadSession(): Session {
+  const saved = readSession();
+  if (saved && saved.index < saved.order.length) return saved;
+
+  const session = createSession();
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  return session;
 }
 
 /** 完了したセッションをリザルト画面用に書き出す */
@@ -112,7 +162,7 @@ function writeResult(s: Session) {
     id: `${s.startedAt}-${s.answers.length}`,
     finishedAt: new Date().toISOString(),
     answers: s.answers,
-    earnedBalls: s.answers.filter((a) => a.correct).length * REWARD,
+    earnedBalls: s.earnedBalls,
     startedAt: s.startedAt,
   };
   sessionStorage.setItem(LEARN_RESULT_KEY, JSON.stringify(result));
@@ -127,6 +177,7 @@ export function Learn() {
   const [timeLeft, setTimeLeft] = useState(QUESTION_MS);
   // 回答済みフラグ（時間切れとの二重発火を防ぐ）
   const answeredRef = useRef(false);
+  const questionAt = useRef(0);
 
   const total = session.order.length || TOTAL;
   const word = useMemo(
@@ -139,17 +190,11 @@ export function Learn() {
   const liveRef = useRef({ session, word });
   liveRef.current = { session, word };
 
-  const speak = useCallback(() => {
-    if (!("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance(word.word);
-    u.lang = "en-US";
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  }, [word]);
+  const playWord = useCallback(() => speak(word.word), [word]);
 
   // 不正解 / 時間切れ → 失敗演出へ（玉が減る）
   const goFail = useCallback(
-    (kind: "miss" | "timeout") => {
+    (kind: "miss" | "timeout", selectedChoice: string | null = null) => {
       const cur = liveRef.current.session;
       const w = liveRef.current.word;
       const wasKakuhen = cur.kakuhen ?? false;
@@ -161,16 +206,30 @@ export function Learn() {
       const revive = wasKakuhen && Math.random() < REVIVE_CHANCE;
       answer(w.id, false, 0, penalty);
 
+      const seconds = Math.max(0.1, (performance.now() - questionAt.current) / 1000);
       const next: Session = {
         ...cur,
         index: cur.index + 1,
+        answers: [
+          ...cur.answers,
+          {
+            wordId: w.id,
+            word: w.word,
+            phonetic: w.phonetic,
+            meaning: w.meaning,
+            selected: selectedChoice,
+            correct: false,
+            seconds,
+          },
+        ],
         combo: 0,
         missStreak,
         kakuhen: revive,
         kakuhenLen: revive ? randInt(KAKUHEN_MIN_LEN, KAKUHEN_MAX_LEN) : cur.kakuhenLen,
         kakuhenCount: 0,
       };
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+      if (next.index >= TOTAL) writeResult(next);
+      else sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
       navigate("/learn/fail", {
         state: {
           kind: kind === "timeout" ? "timeout" : wasKakuhen ? "kakuhenEnd" : "miss",
@@ -188,6 +247,7 @@ export function Learn() {
     answeredRef.current = false;
     setTimeLeft(QUESTION_MS);
     const start = performance.now();
+    questionAt.current = start;
     const id = window.setInterval(() => {
       const left = Math.max(0, QUESTION_MS - (performance.now() - start));
       setTimeLeft(left);
@@ -210,7 +270,7 @@ export function Learn() {
     setSelected(c);
 
     if (c !== word.meaning) {
-      goFail("miss");
+      goFail("miss", c);
       return;
     }
 
@@ -257,10 +317,24 @@ export function Learn() {
     // 連続正解でミス連続が途切れる
     answer(word.id, true, reward);
 
+    const seconds = Math.max(0.1, (performance.now() - questionAt.current) / 1000);
     const next: Session = {
       ...session,
       index: session.index + 1,
       order,
+      answers: [
+        ...session.answers,
+        {
+          wordId: word.id,
+          word: word.word,
+          phonetic: word.phonetic,
+          meaning: word.meaning,
+          selected: c,
+          correct: true,
+          seconds,
+        },
+      ],
+      earnedBalls: session.earnedBalls + reward,
       combo,
       missStreak: 0,
       kakuhen,
@@ -268,7 +342,8 @@ export function Learn() {
       kakuhenLen,
       kakuhenCount,
     };
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    if (next.index >= TOTAL) writeResult(next);
+    else sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
 
     // 確変終了（or 終了かと思いきや突入）の演出へ
     if (kakuhenEnded || kakuhenRevive) {
@@ -365,7 +440,7 @@ export function Learn() {
               <button
                 key={c}
                 className={`choice ${state}`}
-                onClick={(e) => choose(c, e.timeStamp)}
+                onClick={() => choose(c)}
                 disabled={selected !== null}
               >
                 {c}

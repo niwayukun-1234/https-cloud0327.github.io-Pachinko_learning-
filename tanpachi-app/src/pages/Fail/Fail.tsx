@@ -64,8 +64,7 @@ export function Fail() {
 
   const next = useCallback(() => {
     if (finished) {
-      sessionStorage.removeItem("tanpachi:session");
-      navigate("/home", { replace: true });
+      navigate("/result", { replace: true });
     } else {
       navigate("/learn", { replace: true });
     }

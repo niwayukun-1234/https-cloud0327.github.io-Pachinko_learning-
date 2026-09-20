@@ -23,6 +23,15 @@ npm run build
 
 `main` ブランチへ変更を反映すると、GitHub Actionsが `tanpachi-app` をビルドしてGitHub Pagesへ公開します。
 
+## ローカルnpm環境の学習フロー
+
+```bash
+npm ci
+npm run dev
+```
+
+このアプリは `HashRouter` を使用します。ホームの下部タブバーにある「学習」は `#/learn` を開き、既存の `Learn` コンポーネントを使用します。学習セッションは `sessionStorage` に保存され、10問終了後は `#/result` に遷移します。
+
 ## 学習結果画面(リザルト)
 
 学習セッション(10問)を終えると、結果画面へ遷移します。

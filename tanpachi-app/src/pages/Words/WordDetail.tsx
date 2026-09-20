@@ -54,8 +54,10 @@ export function WordDetail({
 
         <div className="wt-sheet-head">
           <div className="wt-sheet-no">
-            <span className="n">No.{String(word.indexNo).padStart(3, "0")}</span>
-            <span className="pos">{word.partOfSpeech}</span>
+            <span className="n">
+              {word.indexNo === undefined ? "No.—" : `No.${String(word.indexNo).padStart(3, "0")}`}
+            </span>
+            <span className="pos">{word.partOfSpeech ?? "—"}</span>
           </div>
           <div className="wt-sheet-head-r">
             <button
@@ -83,7 +85,7 @@ export function WordDetail({
 
           <div className="wt-sheet-meaning">
             <div className="wt-sheet-ja">{word.meaning}</div>
-            <p className="wt-sheet-detail">{word.meaningDetail}</p>
+            <p className="wt-sheet-detail">{word.meaningDetail ?? word.meaning}</p>
           </div>
 
           <div className={`wt-state st-${status}`}>
@@ -115,14 +117,14 @@ export function WordDetail({
             <h3>
               <BookOpen size={13} /> 例文
             </h3>
-            <p className="wt-ex-en">{word.exampleEn}</p>
-            <p className="wt-ex-ja">{word.exampleJa}</p>
+            <p className="wt-ex-en">{word.exampleEn ?? word.word}</p>
+            <p className="wt-ex-ja">{word.exampleJa ?? word.meaning}</p>
           </div>
 
           <div className="wt-sheet-sec">
             <h3>よく使う表現</h3>
             <div className="wt-collo">
-              {word.collocations.map((c) => (
+              {(word.collocations ?? []).map((c) => (
                 <span key={c} className="wt-collo-chip">
                   {c}
                 </span>
@@ -149,7 +151,7 @@ export function WordDetail({
                 <span className="v sm">{lastStudiedLabel(stat?.lastAt, now)}</span>
               </div>
             </div>
-            <p className="wt-hist-note">出題範囲 {word.level}</p>
+            <p className="wt-hist-note">出題範囲 {word.level ?? "未設定"}</p>
           </div>
         </div>
 
