@@ -1,0 +1,204 @@
+.login {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #070308;
+}
+
+.login-bg {
+  position: absolute;
+  inset: -6%;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.55) saturate(1.05);
+  animation: login-enter-bg 1.2s ease-out both;
+}
+
+.login-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.28) 22%, rgba(0, 0, 0, 0.55) 100%),
+    radial-gradient(ellipse at 50% 40%, transparent 20%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 18px 24px;
+}
+
+.login-kicker {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.38em;
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(245, 197, 66, 0.6);
+  animation: welcome-fade-up 0.55s ease both;
+}
+
+.login-title {
+  margin: 10px 0 0;
+  text-align: center;
+  font-family: var(--font-brush);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow:
+    0 3px 0 #5a0a14,
+    0 0 18px rgba(214, 26, 43, 0.7);
+  animation: welcome-fade-up 0.55s ease 0.08s both;
+}
+
+.login-sub {
+  margin: 8px 0 18px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-sub);
+  animation: welcome-fade-up 0.55s ease 0.16s both;
+}
+
+.login-seats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-seats > li {
+  opacity: 0;
+  animation: welcome-fade-up 0.55s ease both;
+}
+
+.login-seat {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 10px;
+  text-align: left;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(28, 16, 18, 0.92), rgba(12, 8, 10, 0.94));
+  border: 1.5px solid rgba(245, 197, 66, 0.45);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.login-seat:disabled {
+  cursor: default;
+}
+
+.login-seat.is-picked {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 1px var(--gold),
+    0 0 22px rgba(245, 197, 66, 0.45);
+  transform: scale(1.02);
+}
+
+.login-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-weight: 900;
+  font-size: 16px;
+  color: #3a1408;
+  background: linear-gradient(180deg, #fff3b0, #f5c542 55%, #b8860b);
+  box-shadow: 0 0 0 2px #5a0a12;
+}
+
+.login-seat-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.login-badge {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--gold-2);
+}
+
+.login-name {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.login-hint {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.login-enter-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(180deg, var(--red-2), var(--red-dark));
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 7px 12px;
+}
+
+.login-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 230, 150, 0.55), transparent 55%);
+  animation: login-flash 0.42s ease both;
+}
+
+@keyframes login-enter-bg {
+  from {
+    transform: scale(1.12);
+    filter: brightness(0.25) saturate(1.05);
+  }
+  to {
+    transform: scale(1);
+    filter: brightness(0.55) saturate(1.05);
+  }
+}
+
+@keyframes login-flash {
+  from {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-bg,
+  .login-kicker,
+  .login-title,
+  .login-sub,
+  .login-seats > li,
+  .login-flash {
+    animation: none !important;
+  }
+
+  .login-seats > li {
+    opacity: 1;
+  }
+}
