@@ -226,7 +226,9 @@ function reducer(state: AppState, action: Action): AppState {
             id: uid(),
             at: new Date().toISOString(),
             delta,
-            reason: result.jackpot
+            reason: result.mode === "hanamai"
+              ? `花舞 ${result.jackpot ? "大当たり" : "ハズレ"} / 学習${result.correct ? "正解" : "不正解"} (${result.word})`
+              : result.jackpot
               ? `パチンコ 大当たり (${result.word})`
               : result.correct
                 ? `パチンコ 正解 (${result.word})`
