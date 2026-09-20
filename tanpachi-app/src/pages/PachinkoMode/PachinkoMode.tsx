@@ -6,7 +6,7 @@ import {
   type CSSProperties,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home } from "../../components/Icons";
+import { Home, RotateCcw } from "../../components/Icons";
 import { QuizModal } from "../../components/QuizModal";
 import { QUIZ_TITLE } from "../../data/toeicQuiz";
 import { accuracy, useApp } from "../../store/AppContext";
@@ -41,13 +41,11 @@ export function PachinkoMode() {
   const [auto, setAuto] = useState(false);
   const [power, setPower] = useState(3);
   const [sound, setSound] = useState(false);
-  const [reduced, setReduced] = useState(
+  // 動きを抑えるは端末のOS設定（prefers-reduced-motion）に従う
+  const [reduced] = useState(
     () => matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
-  const [modal, setModal] = useState<"settings" | null>(null);
   const [showProgress, setShowProgress] = useState(false);
-  const [volume, setVolume] = useState(0.55);
-  const [voice, setVoice] = useState(true);
   const audio = useRef(new GameAudio());
   const toggleSound = (on: boolean) => {
     audio.current.enable(on);
@@ -91,16 +89,15 @@ export function PachinkoMode() {
     return () => document.removeEventListener("visibilitychange", pause);
   }, [sound]);
   useEffect(() => {
-    if (!auto || !spin.canSpin || modal || showProgress) return;
+    if (!auto || !spin.canSpin || showProgress) return;
     const id = setTimeout(() => start(), 850);
     return () => clearTimeout(id);
-  }, [auto, spin.canSpin, start, modal, showProgress]);
+  }, [auto, spin.canSpin, start, showProgress]);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
         e.code !== "Space" ||
         e.repeat ||
-        modal ||
         showProgress ||
         (e.target instanceof HTMLElement &&
           ["INPUT", "BUTTON"].includes(e.target.tagName))
@@ -113,7 +110,7 @@ export function PachinkoMode() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [phase, start, finish, modal, showProgress]);
+  }, [phase, start, finish, showProgress]);
   const message = {
     idle: "学んで、咲かせる。その一瞬を。",
     spin: "運命が、廻りはじめる。",
@@ -152,12 +149,15 @@ export function PachinkoMode() {
             <span>ホーム</span>
           </button>
           <button
-            className="utility"
-            onClick={() => setModal("settings")}
-            aria-label="設定"
+            className="utility welcome"
+            onClick={() => navigate("/")}
+            aria-label="Welcome（最初の画面）へ戻る"
+            title="Welcomeへ戻る"
           >
-            <b>⚙</b>
-            <span>設定</span>
+            <b>
+              <RotateCcw size={20} />
+            </b>
+            <span>Welcome</span>
           </button>
         </header>
         <section className={`machine ${phase}`} aria-label="花舞パチンコ">
@@ -405,7 +405,6 @@ export function PachinkoMode() {
             <button
               className="launch"
               disabled={
-                modal !== null ||
                 showProgress ||
                 (phase !== "idle" && phase !== "push") ||
                 (save.balls < 10 && phase !== "push")
@@ -418,7 +417,7 @@ export function PachinkoMode() {
             <span className="play-status" aria-live="polite">
               {phase === "idle"
                 ? save.balls < 10
-                  ? "玉不足：メニューから学習へ"
+                  ? "玉不足：ホームから学習へ"
                   : "タップで発射 · 10玉"
                 : phase === "win"
                   ? "大当たり！"
@@ -456,73 +455,6 @@ export function PachinkoMode() {
                 }}
               />
             ))}
-          </div>
-        )}
-        {modal && (
-          <div className="modal-backdrop" onClick={() => setModal(null)}>
-            <section
-              className="modal"
-              role="dialog"
-              aria-modal="true"
-              aria-label="演出設定"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className="close"
-                autoFocus
-                onClick={() => setModal(null)}
-              >
-                閉じる ×
-              </button>
-              <h2>演出設定</h2>
-              <label className="setting-row">
-                サウンド
-                <input
-                  type="checkbox"
-                  checked={sound}
-                  onChange={(e) => toggleSound(e.target.checked)}
-                />
-              </label>
-              <label className="setting-row">
-                音量 {Math.round(volume * 100)}%
-                <input
-                  aria-label="音量"
-                  type="range"
-                  min="0"
-                  max="1"
-                  step=".05"
-                  value={volume}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setVolume(v);
-                    audio.current.setVolume(v);
-                  }}
-                />
-              </label>
-              <label className="setting-row">
-                掛け声
-                <input
-                  type="checkbox"
-                  checked={voice}
-                  onChange={(e) => {
-                    setVoice(e.target.checked);
-                    audio.current.voice = e.target.checked;
-                    if (!e.target.checked) audio.current.stopSpeech();
-                  }}
-                />
-              </label>
-              <label className="setting-row">
-                動きを抑える
-                <input
-                  type="checkbox"
-                  checked={reduced}
-                  onChange={(e) => setReduced(e.target.checked)}
-                />
-              </label>
-              <p>
-                掛け声は端末の日本語音声です。英単語の出題中は掛け声を止め、発音を聞けるようにしています。
-              </p>
-            </section>
           </div>
         )}
       </main>
