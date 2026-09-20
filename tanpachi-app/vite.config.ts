@@ -5,4 +5,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  server: {
+    host: true,
+    // Allow access via the sandbox preview proxy (dynamic *.sandbox.novita.ai host)
+    allowedHosts: true,
+  },
 })

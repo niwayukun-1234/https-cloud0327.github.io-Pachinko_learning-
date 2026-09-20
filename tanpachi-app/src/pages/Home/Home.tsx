@@ -1,13 +1,21 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, BookOpen, Flame, Pachinko, User } from "../../components/Icons";
+import { Bell, Flame, Pachinko, User } from "../../components/Icons";
 import { TabBar } from "../../components/TabBar";
 import { accuracy, useApp } from "../../store/AppContext";
-import { BallCounter } from "../../components/BallCounter";
 import "./Home.css";
+
+// 英単語の難易度（TOEICスコア別）
+const DIFFICULTIES = [500, 600, 700, 750, 800, 850, 900] as const;
+const DEFAULT_DIFFICULTY = 600;
+
+// バナー（継続は力なり）クリック時に開くURL
+const BANNER_URL = "https://www.youtube.com/watch?v=0LE9VE_iMSU";
 
 export function Home() {
   const { state } = useApp();
   const navigate = useNavigate();
+  const [difficulty, setDifficulty] = useState<number>(DEFAULT_DIFFICULTY);
   const pct = Math.min(100, Math.round((state.todayMinutes / state.goalMinutes) * 100));
   const expPct = Math.round((state.exp / state.expToNext) * 100);
 
@@ -34,10 +42,16 @@ export function Home() {
           </button>
         </div>
 
-        <section className="home-banner">
+        <a
+          className="home-banner"
+          href={BANNER_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="継続は力なり（動画を開く）"
+        >
           <p className="banner-title brush">継続は力なり</p>
           <p className="banner-sub">今日もコツコツ、未来の自分が熱くなる。</p>
-        </section>
+        </a>
 
         <section className="panel home-today">
           <div className="today-left">
@@ -83,34 +97,37 @@ export function Home() {
           </div>
         </section>
 
-        <section className="gold-frame home-balls">
-          <div className="balls-head">
-            <span>所持玉</span>
-            <span className="coin" aria-hidden />
+        <section className="panel home-difficulty">
+          <div className="difficulty-head">
+            <span className="difficulty-title">英単語の難易度</span>
+            <span className="difficulty-sub">TOEICスコア別</span>
           </div>
-          <div className="balls-body">
-            <BallCounter value={state.balls} size="lg" />
-            <Link to="/history" className="balls-history">
-              玉の履歴
-            </Link>
+          <div className="difficulty-options" role="radiogroup" aria-label="英単語の難易度">
+            {DIFFICULTIES.map((score) => (
+              <button
+                key={score}
+                type="button"
+                role="radio"
+                aria-checked={difficulty === score}
+                className={`difficulty-btn ${difficulty === score ? "active" : ""}`}
+                onClick={() => setDifficulty(score)}
+              >
+                <b>{score}</b>
+                <span>点</span>
+              </button>
+            ))}
           </div>
         </section>
 
-        <button className="btn-cta home-cta" onClick={() => navigate("/learn")}>
-          <span className="cta-row">
-            <BookOpen size={28} />
-            <span>
-              英単語を学ぶ
-              <span className="sub">問題を解いて玉をゲット！</span>
-            </span>
-          </span>
-        </button>
-        <button className="btn-cta blue home-cta" onClick={() => navigate("/pachinko")}>
+        <button
+          className="btn-cta blue home-cta"
+          onClick={() => navigate("/pachinko", { state: { difficulty } })}
+        >
           <span className="cta-row">
             <Pachinko size={28} />
             <span>
-              パチンコで遊ぶ
-              <span className="sub">集めた玉で実機をプレイ！</span>
+              パチンコを始める
+              <span className="sub">TOEIC {difficulty}点レベルで出題！</span>
             </span>
           </span>
         </button>
