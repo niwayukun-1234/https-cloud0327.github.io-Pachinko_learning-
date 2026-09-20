@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, BookOpen, Flame, Pachinko, User } from "../../components/Icons";
+import { Bell, Flame, Pachinko, User } from "../../components/Icons";
 import { TabBar } from "../../components/TabBar";
 import { accuracy, useApp } from "../../store/AppContext";
 import { BallCounter } from "../../components/BallCounter";
@@ -96,15 +96,6 @@ export function Home() {
           </div>
         </section>
 
-        <button className="btn-cta home-cta" onClick={() => navigate("/learn")}>
-          <span className="cta-row">
-            <BookOpen size={28} />
-            <span>
-              英単語を学ぶ
-              <span className="sub">問題を解いて玉をゲット！</span>
-            </span>
-          </span>
-        </button>
         <button className="btn-cta blue home-cta" onClick={() => navigate("/pachinko")}>
           <span className="cta-row">
             <Pachinko size={28} />
