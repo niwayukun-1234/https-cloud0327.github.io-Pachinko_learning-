@@ -1,64 +1,300 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BallCounter } from "../../components/BallCounter";
 import { Fx } from "../../components/Fx";
 import { useApp } from "../../store/AppContext";
+import correctSfx from "../../assets/correct.mp3";
+import kakuhenSfx from "../../assets/kakuhen.mp3";
+import tripleSfx from "../../assets/triple.mp3";
+import { playSfx } from "../../lib/sfx";
 import "./Correct.css";
 
-type LocState = { word?: string; reward?: number; finished?: boolean };
+type LocState = {
+  word?: string;
+  reward?: number;
+  bonus?: number;
+  combo?: number;
+  kakuhen?: boolean;
+  // 確変中の1回目の正解だけ専用BGM＆大きな演出にする
+  kakuhenFirst?: boolean;
+  finished?: boolean;
+};
+
+// 通常の正解演出を表示してから次へ進むまでの時間 (ms)
+const HOLD_MS = 2000;
+// 獲得玉数に比例してあふれるパチンコ玉の数（下限/上限＝「あふれる感」と描画負荷の両立）
+const FLOOD_MIN = 24;
+const FLOOD_MAX = 200;
+// 3連続正解（音声再生）時は上から50個の玉が降る
+const TRIPLE_BALLS = 50;
+// 音声が取れなかった場合の保険待ち時間 (ms)
+const KAKUHEN_FALLBACK_MS = 17000;
+const TRIPLE_FALLBACK_MS = 11000;
+
+/** 連続正解の回数を 1〜5 の演出レベルに変換 */
+function fxTier(combo: number) {
+  if (combo >= 8) return 4;
+  if (combo >= 5) return 3;
+  if (combo >= 3) return 2;
+  return 1;
+}
 
 export function Correct() {
   const navigate = useNavigate();
   const { state } = useApp();
   const loc = useLocation();
-  const { reward = 10, finished = false } = (loc.state as LocState | null) ?? {};
-  const [displayed, setDisplayed] = useState(state.balls - reward);
+  const {
+    reward = 10,
+    bonus = 0,
+    combo = 1,
+    kakuhen = false,
+    kakuhenFirst = false,
+    finished = false,
+  } = (loc.state as LocState | null) ?? {};
 
-  // count-up animation of the balance
+  // 確変の1回目だけ専用BGM＆豪華演出。2回目以降は通常の正解演出・音にする。
+  const big = kakuhen && kakuhenFirst;
+  const baseReward = Math.max(0, reward - bonus);
+  // 確変中でも2回目以降は通常の演出レベルに戻す
+  const tier = big ? 5 : fxTier(combo);
+  // 3連続正解（確変を除く）: 添付音楽を再生し、正解が一回転＋上から玉50個
+  const isTriple = combo === 3 && !kakuhen;
+
+  // 再生する効果音を決定
+  //  - 確変の1回目: 確変用音源（長め）
+  //  - 3連続正解: 添付音楽
+  //  - それ以外（確変2回目以降を含む）: 通常の正解音
+  const sfx = big ? kakuhenSfx : isTriple ? tripleSfx : correctSfx;
+  // 音声が終わるまで正解の表記を保持するか（確変1回目 / 3連続正解時）
+  const holdUntilSoundEnds = big || isTriple;
+
+  const [displayed, setDisplayed] = useState(state.balls - reward);
+  const [bonusRevealed, setBonusRevealed] = useState(false);
+  // StrictMode の二重実行でも効果音を一度だけ鳴らすためのガード
+  const playedRef = useRef(false);
+  const soundRef = useRef<HTMLAudioElement | null>(null);
+
+  // 所持玉のカウントアップ演出（確変時は演出の途中から +100 ボーナスが加算される）
   useEffect(() => {
-    const start = state.balls - reward;
+    const before = state.balls - reward;
+    const baseEnd = before + baseReward;
     const end = state.balls;
+    const dur = bonus > 0 ? 1400 : 800;
+    const bonusStart = 0.5; // 演出のちょうど中間からボーナス加算
     const t0 = performance.now();
     let raf = 0;
     const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / 700);
-      setDisplayed(Math.round(start + (end - start) * (1 - Math.pow(1 - p, 3))));
+      const p = Math.min(1, (t - t0) / dur);
+      let val: number;
+      if (bonus > 0 && p >= bonusStart) {
+        const q = (p - bonusStart) / (1 - bonusStart);
+        val = baseEnd + (end - baseEnd) * (1 - Math.pow(1 - q, 3));
+      } else {
+        const q = bonus > 0 ? p / bonusStart : p;
+        val = before + (baseEnd - before) * (1 - Math.pow(1 - q, 3));
+      }
+      setDisplayed(Math.round(val));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [state.balls, reward]);
+  }, [state.balls, reward, baseReward, bonus]);
 
-  const next = () => {
+  // ボーナス（+100玉）を演出の途中で出現させる
+  useEffect(() => {
+    if (bonus <= 0) return;
+    const t = window.setTimeout(() => setBonusRevealed(true), 700);
+    return () => window.clearTimeout(t);
+  }, [bonus]);
+
+  // 正解効果音を再生。StrictMode の二重実行でも一度だけ鳴らす。
+  useEffect(() => {
+    if (playedRef.current) return;
+    playedRef.current = true;
+    // 音源は自然再生のままにして、遷移時も鳴り続けるようにする
+    soundRef.current = playSfx(sfx);
+  }, [sfx]);
+
+  const next = useCallback(() => {
     if (finished) {
-      sessionStorage.removeItem("tanpachi:session");
-      navigate("/home", { replace: true });
+      // セッション終了 → 学習結果画面へ
+      navigate("/result", { replace: true });
     } else {
       navigate("/learn", { replace: true });
     }
-  };
+  }, [finished, navigate]);
+
+  // 自動的に次へ進む。
+  //  - 通常: 2秒で進む
+  //  - 確変1回目 / 3連続正解: 音声が終わるまで正解の表記を保持してから進む
+  useEffect(() => {
+    if (!holdUntilSoundEnds) {
+      const t = window.setTimeout(next, HOLD_MS);
+      return () => window.clearTimeout(t);
+    }
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      next();
+    };
+    const fallbackMs = big ? KAKUHEN_FALLBACK_MS : TRIPLE_FALLBACK_MS;
+    const timer = window.setTimeout(finish, fallbackMs);
+    const audio = soundRef.current;
+    const onEnded = () => finish();
+    if (audio) audio.addEventListener("ended", onEnded);
+    return () => {
+      window.clearTimeout(timer);
+      if (audio) audio.removeEventListener("ended", onEnded);
+    };
+  }, [holdUntilSoundEnds, big, next]);
+
+  // コンボ/確変が進むほど演出がどんどん豪華になる
+  const intensity = useMemo(
+    () => ({
+      sparkles: 40 + combo * 12 + (big ? 40 : 0),
+      petals: 8 + combo * 4,
+      coins: 24 + combo * 6 + (big ? 30 : 0),
+      rings: 3 + Math.min(combo, 6) + (big ? 3 : 0),
+    }),
+    [combo, big],
+  );
+
+  // 舞い上がるコイン（毎回ランダム）
+  const coins = useMemo(
+    () =>
+      Array.from({ length: intensity.coins }, (_, i) => ({
+        id: i,
+        x: 4 + Math.random() * 92,
+        delay: Math.random() * 0.6,
+        dur: 0.9 + Math.random() * 0.9,
+        size: 12 + Math.random() * 18,
+      })),
+    [intensity.coins],
+  );
+
+  // 上から降ってくる（あふれる）パチンコ玉。
+  // 3連続正解のときは音声に合わせて50個、それ以外は獲得玉数に比例。
+  const floodCount = isTriple ? TRIPLE_BALLS : Math.min(Math.max(reward, FLOOD_MIN), FLOOD_MAX);
+  const flood = useMemo(
+    () =>
+      Array.from({ length: floodCount }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * (isTriple ? 2.2 : 0.9),
+        dur: 1.0 + Math.random() * 1.2,
+        size: 24 + Math.random() * 28,
+      })),
+    [floodCount, isTriple],
+  );
 
   return (
-    <div className="correct">
-      <Fx rays sparkles={40} petals={8} />
+    <div className={`correct tier-${tier}${big ? " kakuhen" : ""}`}>
+      <Fx rays sparkles={intensity.sparkles} petals={intensity.petals} />
+
+      {/* 上から降ってくるパチンコ玉 */}
+      <div className="correct-ball-flood" aria-hidden>
+        {flood.map((b) => (
+          <span
+            key={b.id}
+            className="flood-ball ball"
+            style={{
+              left: `${b.x}%`,
+              width: b.size,
+              height: b.size,
+              animationDelay: `${b.delay}s`,
+              animationDuration: `${b.dur}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ちかちか系の演出レイヤー */}
       <div className="correct-burst" aria-hidden />
+      <div className="correct-rays-fast" aria-hidden />
+      <div className="correct-rings" aria-hidden>
+        {Array.from({ length: intensity.rings }, (_, i) => (
+          <span key={i} />
+        ))}
+      </div>
+      <div className="correct-strobe" aria-hidden />
+      <div className="correct-flash" aria-hidden />
+      <div className="correct-edge" aria-hidden />
+      {tier >= 2 && <div className="correct-lightning" aria-hidden />}
+      {tier >= 3 && (
+        <div className="correct-fireworks" aria-hidden>
+          {Array.from({ length: 3 + (tier - 3) * 3 }, (_, i) => (
+            <span
+              key={i}
+              style={{
+                left: `${15 + i * 22}%`,
+                top: `${18 + (i % 3) * 16}%`,
+                animationDelay: `${0.2 + i * 0.25}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {tier >= 4 && <div className="correct-rainbow" aria-hidden />}
+      {big && <div className="correct-kakuhen-flash" aria-hidden />}
+      <div className="correct-confetti" aria-hidden>
+        {coins.map((c) => (
+          <span
+            key={c.id}
+            className="correct-coin"
+            style={{
+              left: `${c.x}%`,
+              width: c.size,
+              height: c.size,
+              animationDelay: `${c.delay}s`,
+              animationDuration: `${c.dur}s`,
+            }}
+          />
+        ))}
+      </div>
+
       <div className="correct-body">
-        <h1 className="correct-title brush pop">正解!</h1>
-        <div className="correct-ball-wrap pop" style={{ animationDelay: "0.1s" }}>
+        {big && <div className="correct-kakuhen-badge">確変!</div>}
+        {!big && combo >= 2 && (
+          <div className={`correct-combo tier-${tier}`}>
+            <span className="combo-label">連続正解</span>
+            <span className="combo-num">
+              {combo}
+              <small>コンボ</small>
+            </span>
+          </div>
+        )}
+        <div className="correct-title-wrap">
+          <div
+            className={`correct-title-rot${big ? " spin" : ""}${isTriple ? " one-spin" : ""}`}
+          >
+            <h1 className="correct-title brush">正解!</h1>
+          </div>
+        </div>
+        <div className="correct-ball-wrap">
           <span className="ball correct-ball" />
         </div>
-        <div className="correct-plus pop" style={{ animationDelay: "0.2s" }}>
-          <span className="plus">+{reward}</span>
+        <div className="correct-plus">
+          <span className="plus">+{baseReward}</span>
           <span className="unit brush">玉</span>
         </div>
 
-        <section className="gold-frame correct-balance fade-up" style={{ animationDelay: "0.35s" }}>
+        {/* 確変ボーナス: 演出の途中から出現 */}
+        {bonus > 0 && (
+          <div className={`correct-bonus${bonusRevealed ? " show" : ""}`}>
+            <span className="bonus-label">確変ボーナス</span>
+            <span className="bonus-num">+{bonus}</span>
+            <span className="bonus-unit">玉</span>
+          </div>
+        )}
+
+        <section className="gold-frame correct-balance">
           <div className="label">現在の所持玉</div>
           <BallCounter value={displayed} size="md" delta={reward} />
         </section>
 
         <button className="btn-cta correct-next fade-up" style={{ animationDelay: "0.45s" }} onClick={next}>
-          {finished ? "ホームへ戻る" : "次の問題へ"}
+          {finished ? "結果を見る" : "次の問題へ"}
         </button>
       </div>
     </div>

@@ -10,7 +10,7 @@
 | `Correct/` | `/learn/correct` | 正解結果 |
 | `PachinkoMode/` | `/pachinko` | パチンコモード |
 | `Rewards/` | `/rewards` | 報酬 |
-| `Words/` | `/words` | 単語帳 |
+| `Words/` | `/words` | 単語図鑑・復習 |
 | `Records/` | `/records` | 学習記録 |
 | `MyPage/` | `/mypage` | マイページ |
 | `MenuPage/` | `/menu` | メニュー |

@@ -1,0 +1,1306 @@
+{
+  "title": "TOEIC 500-600 英単語クイズ",
+  "count": 100,
+  "questions": [
+    {
+      "id": 1,
+      "word": "achieve",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "達成する",
+      "choices": [
+        "拒否する",
+        "交渉する",
+        "達成する",
+        "延期する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 2,
+      "word": "attend",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "出席する",
+      "choices": [
+        "辞退する",
+        "中止する",
+        "延期する",
+        "出席する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 3,
+      "word": "available",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "利用できる",
+      "choices": [
+        "利用できる",
+        "高価な",
+        "故障した",
+        "期限切れの"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 4,
+      "word": "benefit",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "利益",
+      "choices": [
+        "損害",
+        "給与",
+        "利益",
+        "義務"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 5,
+      "word": "confirm",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "確認する",
+      "choices": [
+        "省略する",
+        "取り消す",
+        "疑う",
+        "確認する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 6,
+      "word": "consider",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "検討する",
+      "choices": [
+        "実行する",
+        "中止する",
+        "無視する",
+        "検討する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 7,
+      "word": "contract",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "契約",
+      "choices": [
+        "衝突",
+        "内容",
+        "接触",
+        "契約"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 8,
+      "word": "convince",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "説得する",
+      "choices": [
+        "説得する",
+        "比較する",
+        "混乱させる",
+        "強制する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 9,
+      "word": "customer",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "顧客",
+      "choices": [
+        "顧客",
+        "同僚",
+        "販売員",
+        "上司"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 10,
+      "word": "deadline",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "締め切り",
+      "choices": [
+        "勤務時間",
+        "締め切り",
+        "休暇",
+        "定年"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 11,
+      "word": "department",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "部署",
+      "choices": [
+        "寮",
+        "部署",
+        "工場",
+        "倉庫"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 12,
+      "word": "develop",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "開発する",
+      "choices": [
+        "縮小する",
+        "開発する",
+        "破壊する",
+        "遅らせる"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 13,
+      "word": "discuss",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "話し合う",
+      "choices": [
+        "中止する",
+        "話し合う",
+        "無視する",
+        "記録する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 14,
+      "word": "efficient",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "効率的な",
+      "choices": [
+        "複雑な",
+        "高価な",
+        "効率的な",
+        "曖昧な"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 15,
+      "word": "employee",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "従業員",
+      "choices": [
+        "雇用主",
+        "株主",
+        "顧客",
+        "従業員"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 16,
+      "word": "equipment",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "設備",
+      "choices": [
+        "書類",
+        "資金",
+        "衣類",
+        "設備"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 17,
+      "word": "estimate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "見積もる",
+      "choices": [
+        "断定する",
+        "削除する",
+        "見積もる",
+        "印刷する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 18,
+      "word": "expand",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "拡大する",
+      "choices": [
+        "分割する",
+        "拡大する",
+        "移動する",
+        "縮小する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 19,
+      "word": "experience",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "経験",
+      "choices": [
+        "資格",
+        "給与",
+        "実験",
+        "経験"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 20,
+      "word": "facility",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "施設",
+      "choices": [
+        "工具",
+        "職務",
+        "能力",
+        "施設"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 21,
+      "word": "financial",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "財務の",
+      "choices": [
+        "財務の",
+        "個人的な",
+        "医療の",
+        "物理的な"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 22,
+      "word": "improve",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "改善する",
+      "choices": [
+        "証明する",
+        "輸入する",
+        "改善する",
+        "悪化させる"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 23,
+      "word": "increase",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "増加する",
+      "choices": [
+        "減少する",
+        "増加する",
+        "延期する",
+        "維持する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 24,
+      "word": "inform",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "知らせる",
+      "choices": [
+        "訂正する",
+        "知らせる",
+        "隠す",
+        "疑う"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 25,
+      "word": "inspect",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "検査する",
+      "choices": [
+        "検査する",
+        "無視する",
+        "破棄する",
+        "承認する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 26,
+      "word": "install",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "設置する",
+      "choices": [
+        "撤去する",
+        "輸入する",
+        "設置する",
+        "修理する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 27,
+      "word": "interview",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "面接",
+      "choices": [
+        "休憩",
+        "発表",
+        "面接",
+        "討論"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 28,
+      "word": "inventory",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "在庫",
+      "choices": [
+        "発明",
+        "請求",
+        "在庫",
+        "投資"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 29,
+      "word": "invoice",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "請求書",
+      "choices": [
+        "領収書",
+        "見積書",
+        "請求書",
+        "契約書"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 30,
+      "word": "launch",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "開始する",
+      "choices": [
+        "縮小する",
+        "延期する",
+        "開始する",
+        "終了する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 31,
+      "word": "maintain",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "維持する",
+      "choices": [
+        "中止する",
+        "破壊する",
+        "交換する",
+        "維持する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 32,
+      "word": "manage",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "管理する",
+      "choices": [
+        "譲渡する",
+        "管理する",
+        "破棄する",
+        "混乱させる"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 33,
+      "word": "meeting",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "会議",
+      "choices": [
+        "会議",
+        "訓練",
+        "出張",
+        "休憩"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 34,
+      "word": "negotiate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "交渉する",
+      "choices": [
+        "無視する",
+        "承認する",
+        "交渉する",
+        "拒否する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 35,
+      "word": "notify",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "通知する",
+      "choices": [
+        "遅延させる",
+        "撤回する",
+        "通知する",
+        "隠蔽する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 36,
+      "word": "obtain",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "入手する",
+      "choices": [
+        "拒否する",
+        "入手する",
+        "紛失する",
+        "返却する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 37,
+      "word": "offer",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "申し出る",
+      "choices": [
+        "申し出る",
+        "撤回する",
+        "拒絶する",
+        "遅延させる"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 38,
+      "word": "opportunity",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "機会",
+      "choices": [
+        "機会",
+        "結果",
+        "義務",
+        "障害"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 39,
+      "word": "participate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "参加する",
+      "choices": [
+        "参加する",
+        "辞退する",
+        "欠席する",
+        "主催する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 40,
+      "word": "perform",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "実行する",
+      "choices": [
+        "省略する",
+        "実行する",
+        "失敗する",
+        "延期する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 41,
+      "word": "postpone",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "延期する",
+      "choices": [
+        "前倒しする",
+        "中止する",
+        "完成させる",
+        "延期する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 42,
+      "word": "prepare",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "準備する",
+      "choices": [
+        "破壊する",
+        "無視する",
+        "遅刻する",
+        "準備する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 43,
+      "word": "purchase",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "購入する",
+      "choices": [
+        "購入する",
+        "販売する",
+        "返却する",
+        "修理する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 44,
+      "word": "recommend",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "推薦する",
+      "choices": [
+        "却下する",
+        "無視する",
+        "非難する",
+        "推薦する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 45,
+      "word": "recruit",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "採用する",
+      "choices": [
+        "降格させる",
+        "解雇する",
+        "退職する",
+        "採用する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 46,
+      "word": "reduce",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "削減する",
+      "choices": [
+        "倍増させる",
+        "削減する",
+        "維持する",
+        "増加する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 47,
+      "word": "refund",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "返金する",
+      "choices": [
+        "投資する",
+        "寄付する",
+        "返金する",
+        "請求する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 48,
+      "word": "register",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "登録する",
+      "choices": [
+        "削除する",
+        "登録する",
+        "無視する",
+        "延期する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 49,
+      "word": "remain",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "残る",
+      "choices": [
+        "増える",
+        "移動する",
+        "残る",
+        "消える"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 50,
+      "word": "renovate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "改装する",
+      "choices": [
+        "取り壊す",
+        "改装する",
+        "移転する",
+        "放置する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 51,
+      "word": "request",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "要求する",
+      "choices": [
+        "拒否する",
+        "要求する",
+        "提供する",
+        "返却する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 52,
+      "word": "require",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "必要とする",
+      "choices": [
+        "必要とする",
+        "供給する",
+        "廃止する",
+        "免除する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 53,
+      "word": "reserve",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "予約する",
+      "choices": [
+        "開放する",
+        "取り消す",
+        "予約する",
+        "混雑させる"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 54,
+      "word": "resource",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "資源",
+      "choices": [
+        "予算",
+        "記録",
+        "結果",
+        "資源"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 55,
+      "word": "responsible",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "責任がある",
+      "choices": [
+        "未熟な",
+        "無関心な",
+        "責任がある",
+        "不適切な"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 56,
+      "word": "schedule",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "予定",
+      "choices": [
+        "経歴",
+        "給与",
+        "契約",
+        "予定"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 57,
+      "word": "shipment",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "発送",
+      "choices": [
+        "貯金",
+        "修理",
+        "面接",
+        "発送"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 58,
+      "word": "signature",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "署名",
+      "choices": [
+        "図面",
+        "署名",
+        "予約",
+        "計算"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 59,
+      "word": "sincerely",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "心から",
+      "choices": [
+        "稀に",
+        "心から",
+        "突然",
+        "故意に"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 60,
+      "word": "staff",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "職員",
+      "choices": [
+        "競合他社",
+        "職員",
+        "顧客",
+        "株主"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 61,
+      "word": "submit",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "提出する",
+      "choices": [
+        "提出する",
+        "受領する",
+        "撤回する",
+        "破棄する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 62,
+      "word": "success",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "成功",
+      "choices": [
+        "成功",
+        "挑戦",
+        "努力",
+        "失敗"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 63,
+      "word": "suggest",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "提案する",
+      "choices": [
+        "実行する",
+        "拒否する",
+        "提案する",
+        "強制する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 64,
+      "word": "supplier",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "供給業者",
+      "choices": [
+        "投資家",
+        "競争相手",
+        "供給業者",
+        "消費者"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 65,
+      "word": "survey",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "調査",
+      "choices": [
+        "発表",
+        "演説",
+        "討論",
+        "調査"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 66,
+      "word": "temporary",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "一時的な",
+      "choices": [
+        "定期的な",
+        "永久的な",
+        "一時的な",
+        "継続的な"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 67,
+      "word": "training",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "研修",
+      "choices": [
+        "研修",
+        "給与",
+        "面接",
+        "休暇"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 68,
+      "word": "transfer",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "転送する",
+      "choices": [
+        "保存する",
+        "転送する",
+        "印刷する",
+        "削除する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 69,
+      "word": "vacancy",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "空き",
+      "choices": [
+        "欠席",
+        "空き",
+        "予約",
+        "満員"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 70,
+      "word": "warranty",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "保証",
+      "choices": [
+        "手数料",
+        "罰金",
+        "保証",
+        "税金"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 71,
+      "word": "accurate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "正確な",
+      "choices": [
+        "大雑把な",
+        "曖昧な",
+        "誤った",
+        "正確な"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 72,
+      "word": "adjust",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "調整する",
+      "choices": [
+        "固定する",
+        "無視する",
+        "調整する",
+        "破壊する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 73,
+      "word": "application",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "申込書",
+      "choices": [
+        "契約書",
+        "領収書",
+        "申込書",
+        "請求書"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 74,
+      "word": "appointment",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "予約",
+      "choices": [
+        "欠席",
+        "解約",
+        "遅刻",
+        "予約"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 75,
+      "word": "assembly",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "組み立て",
+      "choices": [
+        "組み立て",
+        "分解",
+        "廃棄",
+        "修理"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 76,
+      "word": "assist",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "手伝う",
+      "choices": [
+        "手伝う",
+        "妨げる",
+        "無視する",
+        "拒否する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 77,
+      "word": "branch",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "支店",
+      "choices": [
+        "倉庫",
+        "本店",
+        "支店",
+        "工場"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 78,
+      "word": "budget",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "予算",
+      "choices": [
+        "株価",
+        "負債",
+        "利益",
+        "予算"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 79,
+      "word": "candidate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "候補者",
+      "choices": [
+        "候補者",
+        "顧客",
+        "株主",
+        "上司"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 80,
+      "word": "certificate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "証明書",
+      "choices": [
+        "証明書",
+        "領収書",
+        "契約書",
+        "請求書"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 81,
+      "word": "client",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "顧客",
+      "choices": [
+        "上司",
+        "部下",
+        "競合",
+        "顧客"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 82,
+      "word": "colleague",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "同僚",
+      "choices": [
+        "上司",
+        "顧客",
+        "家族",
+        "同僚"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 83,
+      "word": "complaint",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "苦情",
+      "choices": [
+        "苦情",
+        "依頼",
+        "報告",
+        "賛辞"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 84,
+      "word": "comply",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "従う",
+      "choices": [
+        "従う",
+        "無視する",
+        "提案する",
+        "反抗する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 85,
+      "word": "conference",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "会議",
+      "choices": [
+        "面接",
+        "休暇",
+        "会議",
+        "訓練"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 86,
+      "word": "consult",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "相談する",
+      "choices": [
+        "相談する",
+        "報告する",
+        "命令する",
+        "無視する"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 87,
+      "word": "contribute",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "貢献する",
+      "choices": [
+        "消費する",
+        "要求する",
+        "貢献する",
+        "妨害する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 88,
+      "word": "convenient",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "便利な",
+      "choices": [
+        "危険な",
+        "高価な",
+        "便利な",
+        "不便な"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 89,
+      "word": "delay",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "遅延",
+      "choices": [
+        "到着",
+        "出発",
+        "遅延",
+        "加速"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 90,
+      "word": "deliver",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "配達する",
+      "choices": [
+        "保管する",
+        "受け取る",
+        "返却する",
+        "配達する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 91,
+      "word": "demonstrate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "実演する",
+      "choices": [
+        "疑う",
+        "中止する",
+        "隠す",
+        "実演する"
+      ],
+      "correctIndex": 3
+    },
+    {
+      "id": 92,
+      "word": "destination",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "目的地",
+      "choices": [
+        "荷物",
+        "目的地",
+        "出発地",
+        "経由地"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 93,
+      "word": "device",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "装置",
+      "choices": [
+        "衣類",
+        "装置",
+        "書類",
+        "建物"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 94,
+      "word": "distribute",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "配布する",
+      "choices": [
+        "破棄する",
+        "保管する",
+        "配布する",
+        "収集する"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 95,
+      "word": "document",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "文書",
+      "choices": [
+        "会場",
+        "装置",
+        "文書",
+        "口実"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 96,
+      "word": "eager",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "熱望して",
+      "choices": [
+        "疲れた",
+        "熱望して",
+        "無関心な",
+        "慎重な"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 97,
+      "word": "effective",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "効果的な",
+      "choices": [
+        "効果的な",
+        "単純な",
+        "無効な",
+        "高価な"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": 98,
+      "word": "eliminate",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "排除する",
+      "choices": [
+        "追加する",
+        "排除する",
+        "維持する",
+        "承認する"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 99,
+      "word": "emergency",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "緊急事態",
+      "choices": [
+        "休暇",
+        "日常",
+        "緊急事態",
+        "儀式"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 100,
+      "word": "encourage",
+      "level": "TOEIC 500-600",
+      "correctAnswer": "励ます",
+      "choices": [
+        "非難する",
+        "無視する",
+        "妨害する",
+        "励ます"
+      ],
+      "correctIndex": 3
+    }
+  ]
+}
