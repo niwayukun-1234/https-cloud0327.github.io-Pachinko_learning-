@@ -14,6 +14,13 @@
   padding: 2px 2px 0;
 }
 
+/* 右上の演出設定ボタン用の余白 */
+.home-top-spacer {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
 .home-user {
   display: flex;
   align-items: center;

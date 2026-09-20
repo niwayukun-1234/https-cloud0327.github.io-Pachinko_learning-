@@ -1,3 +1,5 @@
+import { getSettings } from "./settings";
+
 // 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
 let currentSfx: HTMLAudioElement | null = null;
 
@@ -10,10 +12,22 @@ export function playSfx(src: string): HTMLAudioElement {
   const audio = new Audio(src);
   audio.volume = 1;
   currentSfx = audio;
-  void audio.play().catch(() => {
-    /* 自動再生がブロックされた環境では無視 */
-  });
+  // 設定で「演出の音」がオフなら鳴らさない（'ended' は発火せず保険タイマーで進む）
+  if (getSettings().sound) {
+    void audio.play().catch(() => {
+      /* 自動再生がブロックされた環境では無視 */
+    });
+  }
   return audio;
+}
+
+/** 再生中の演出音を停止する（演出が終わったら呼ぶ） */
+export function stopSfx(): void {
+  if (currentSfx) {
+    currentSfx.pause();
+    currentSfx.currentTime = 0;
+    currentSfx = null;
+  }
 }
 
 // 外れっぽい効果音を Web Audio で合成する（追加アセット不要）。
@@ -37,6 +51,8 @@ function getCtx(): AudioContext | null {
 
 /** サッドトロンボーン風の下降音（外れ演出用） */
 export function playMiss(): void {
+  // 設定で「演出の音」がオフなら鳴らさない
+  if (!getSettings().sound) return;
   const ac = getCtx();
   if (!ac) return;
   const t0 = ac.currentTime + 0.03;

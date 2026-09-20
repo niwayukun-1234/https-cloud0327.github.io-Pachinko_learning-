@@ -148,6 +148,8 @@ a {
   flex-direction: column;
   position: relative;
   background: var(--bg);
+  /* 「明るさ」設定をアプリ画面全体に反映（設定UIはこの外側なので影響を受けない） */
+  filter: brightness(var(--app-brightness, 1));
 }
 
 .screen-scroll {

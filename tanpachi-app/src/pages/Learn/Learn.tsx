@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Fx } from "../../components/Fx";
 import { Header } from "../../components/Header";
-import { Gear, Speaker } from "../../components/Icons";
+import { Speaker } from "../../components/Icons";
 import { WORDS } from "../../data/words";
 import { useApp } from "../../store/AppContext";
+import { rollMidBonus } from "../../lib/bonus";
+import { getSettings } from "../../lib/settings";
 import "./Learn.css";
 
 const TOTAL = 10;
@@ -93,7 +95,7 @@ function loadSession(): Session {
 
 export function Learn() {
   const navigate = useNavigate();
-  const { answer } = useApp();
+  const { answer, addBalls } = useApp();
   const [session] = useState<Session>(loadSession);
   const [selected, setSelected] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(QUESTION_MS);
@@ -186,10 +188,12 @@ export function Learn() {
     }
 
     // ---- 正解 ----
+    // 設定で確変がオフなら確変に入らない
+    const settings = getSettings();
     const combo = (session.combo ?? 0) + 1;
     const wasKakuhen = session.kakuhen ?? false;
     const kakuhenAt = session.kakuhenAt ?? randInt(KAKUHEN_MIN_COMBO, KAKUHEN_MAX_COMBO);
-    const entering = !wasKakuhen && combo >= kakuhenAt;
+    const entering = settings.kakuhenEnabled && !wasKakuhen && combo >= kakuhenAt;
     // この問題時点で確変中だったか（ボーナス判定に使用）
     const activeThisQ = wasKakuhen || entering;
 
@@ -225,8 +229,14 @@ export function Learn() {
 
     const bonus = activeThisQ ? KAKUHEN_BONUS : 0;
     const reward = REWARD * combo + bonus;
+    // 長い演出（確変1回目 / 3連続正解）のときは、演出の途中で出る中間ボーナスを抽選
+    const kakuhenFirst = kakuhen && kakuhenCount === 1;
+    const isTriple = combo === 3 && !kakuhen;
+    const longAnim = kakuhenFirst || isTriple;
+    const midBonus = longAnim ? rollMidBonus(kakuhen) : 0;
     // 連続正解でミス連続が途切れる
     answer(word.id, true, reward);
+    if (midBonus > 0) addBalls(midBonus, "スペシャルボーナス");
 
     const next: Session = {
       ...session,
@@ -259,10 +269,11 @@ export function Learn() {
         word: word.word,
         reward,
         bonus,
+        midBonus,
         combo,
         kakuhen,
         // 確変中の1回目だけ専用BGMで大きく演出する
-        kakuhenFirst: kakuhen && kakuhenCount === 1,
+        kakuhenFirst,
         finished: next.index >= TOTAL,
       },
     });
@@ -276,15 +287,7 @@ export function Learn() {
     <div className={`learn${session.kakuhen ? " kakuhen" : ""}`}>
       {session.kakuhen && <div className="learn-rainbow" aria-hidden />}
       <Fx petals={10} sparkles={16} />
-      <Header
-        title="学習モード"
-        back="/home"
-        right={
-          <button className="icon-btn" aria-label="設定" onClick={() => navigate("/mypage")}>
-            <Gear size={22} />
-          </button>
-        }
-      />
+      <Header title="学習モード" back="/home" />
       <div className="learn-body">
         <div className="learn-progress">
           <div className="progress">

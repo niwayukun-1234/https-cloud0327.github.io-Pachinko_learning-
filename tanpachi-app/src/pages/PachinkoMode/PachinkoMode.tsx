@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Fx } from "../../components/Fx";
-import { Gear } from "../../components/Icons";
 import { Logo } from "../../components/Logo";
 import { useApp } from "../../store/AppContext";
 import "./PachinkoMode.css";
@@ -140,9 +139,7 @@ export function PachinkoMode() {
           <span>パチンコモード</span>
           <span className="deco">❯</span>
         </div>
-        <button className="icon-btn" aria-label="設定" onClick={() => navigate("/mypage")}>
-          <Gear size={22} />
-        </button>
+        <span className="pachi-header-spacer" aria-hidden />
       </header>
 
       <section className="pachi-counter gold-frame">

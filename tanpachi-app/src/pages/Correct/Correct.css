@@ -571,6 +571,92 @@
   color: #4a1a00;
 }
 
+/* ---------- 中間ボーナス（演出の半分で出現） ---------- */
+.correct-midbonus {
+  background: linear-gradient(180deg, rgba(120, 240, 255, 0.95), rgba(90, 140, 255, 0.95));
+}
+
+.correct-midbonus .bonus-label {
+  color: #06202a;
+}
+
+.correct-midbonus .bonus-num {
+  text-shadow: 0 3px 0 #0a2a5a, 0 0 18px rgba(255, 255, 255, 0.95);
+}
+
+.correct-midbonus .bonus-unit {
+  color: #06202a;
+}
+
+/* 大当たり（+500 / +1000）は金色でさらに派手に */
+.correct-midbonus.big {
+  background: linear-gradient(90deg, #ffe08a, #ffb02e, #ff5a6e, #ffb02e, #ffe08a);
+  background-size: 300% 100%;
+  border-width: 3px;
+  box-shadow: 0 0 34px rgba(255, 190, 60, 1), 0 0 14px rgba(255, 255, 255, 0.9);
+  animation:
+    bonus-reveal 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    bonus-glow 0.5s ease-in-out 0.7s infinite,
+    kakuhen-rainbow 1.2s linear infinite;
+}
+
+.correct-midbonus.big .bonus-num {
+  font-size: 56px;
+  color: #fff;
+  text-shadow: 0 3px 0 #7a1020, 0 0 22px rgba(255, 255, 255, 1);
+}
+
+.correct-midbonus.big .bonus-label,
+.correct-midbonus.big .bonus-unit {
+  color: #4a1a00;
+}
+
+/* 中間ボーナス出現時のフラッシュ */
+.correct-mid-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95), rgba(120, 210, 255, 0.4) 42%, transparent 74%);
+  mix-blend-mode: screen;
+  animation: mid-flash 0.5s ease-out 1 both;
+}
+
+@keyframes mid-flash {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 中間ボーナスと共に「正解」が回転しながら拡大 */
+.correct-title-pop {
+  display: inline-block;
+}
+
+.correct-title-pop.pop {
+  animation: title-pop-spin 1.2s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes title-pop-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-20deg) scale(1.55);
+  }
+  55% {
+    transform: rotate(14deg) scale(1.35);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
 /* ---------- keyframes ---------- */
 
 @keyframes flood-down {

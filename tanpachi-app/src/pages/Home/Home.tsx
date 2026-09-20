@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, BookOpen, Flame, Pachinko, User } from "../../components/Icons";
+import { BookOpen, Flame, Pachinko, User } from "../../components/Icons";
 import { TabBar } from "../../components/TabBar";
 import { accuracy, useApp } from "../../store/AppContext";
 import { BallCounter } from "../../components/BallCounter";
@@ -29,9 +29,7 @@ export function Home() {
               </span>
             </span>
           </Link>
-          <button className="icon-btn" aria-label="通知" onClick={() => navigate("/menu")}>
-            <Bell size={22} />
-          </button>
+          <span className="home-top-spacer" aria-hidden />
         </div>
 
         <section className="home-banner">
