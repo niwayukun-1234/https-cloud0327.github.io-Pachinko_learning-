@@ -6,6 +6,7 @@ import {
   type CSSProperties,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import { pauseSlotBgm, startSlotBgm, stopSlotBgm } from "../../lib/sfx";
 import { Home, RotateCcw } from "../../components/Icons";
 import { QuizModal } from "../../components/QuizModal";
 import { QUIZ_TITLE } from "../../data/toeicQuiz";
@@ -40,7 +41,8 @@ export function PachinkoMode() {
   };
   const [auto, setAuto] = useState(false);
   const [power, setPower] = useState(3);
-  const [sound, setSound] = useState(false);
+  // 遊技中はずっとBGMを流すためデフォルトON（左下のボタンでOFFにできる）
+  const [sound, setSound] = useState(true);
   // 動きを抑えるは端末のOS設定（prefers-reduced-motion）に従う
   const [reduced] = useState(
     () => matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -83,10 +85,32 @@ export function PachinkoMode() {
     );
     return () => clearInterval(id);
   }, [phase, tone]);
+  // 遊技中はずっとBGMを流し続ける（音声OFF・画面を離れたら止める）
   useEffect(() => {
-    const pause = () => audio.current.enable(sound && !document.hidden);
-    document.addEventListener("visibilitychange", pause);
-    return () => document.removeEventListener("visibilitychange", pause);
+    if (sound) startSlotBgm();
+    else stopSlotBgm();
+    return () => stopSlotBgm();
+  }, [sound]);
+  // 自動再生がブロックされた環境向けに、最初のタップで再生を再試行する
+  useEffect(() => {
+    if (!sound) return;
+    const kick = () => startSlotBgm();
+    window.addEventListener("pointerdown", kick);
+    window.addEventListener("keydown", kick);
+    return () => {
+      window.removeEventListener("pointerdown", kick);
+      window.removeEventListener("keydown", kick);
+    };
+  }, [sound]);
+  useEffect(() => {
+    const onVisibility = () => {
+      audio.current.enable(sound && !document.hidden);
+      // タブが隠れている間はBGMを止め、戻ったら続きから再開する
+      if (document.hidden) pauseSlotBgm();
+      else if (sound) startSlotBgm();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [sound]);
   useEffect(() => {
     if (!auto || !spin.canSpin || showProgress) return;
