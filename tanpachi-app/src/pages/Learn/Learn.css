@@ -10,6 +10,44 @@
   overflow: hidden;
 }
 
+/* 確変中は画面全体がレインボーに */
+.learn-rainbow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 0, 80, 0.4),
+    rgba(255, 154, 0, 0.4),
+    rgba(255, 240, 0, 0.4),
+    rgba(74, 222, 128, 0.4),
+    rgba(56, 189, 248, 0.4),
+    rgba(167, 139, 250, 0.4)
+  );
+  background-size: 300% 300%;
+  animation:
+    learn-rainbow-flow 3s linear infinite,
+    learn-rainbow-hue 2.4s linear infinite;
+}
+
+@keyframes learn-rainbow-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes learn-rainbow-hue {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
 .learn .header {
   position: relative;
   z-index: 1;
@@ -55,6 +93,169 @@
 .learn-progress .count b {
   font-size: 15px;
   margin-right: 2px;
+}
+
+/* 制限時間タイマー（6秒）。時間切れは不正解扱い。 */
+.learn-timer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+.learn-timer .timer-num {
+  min-width: 32px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(245, 197, 66, 0.65);
+  transition: color 0.2s;
+}
+
+.learn-timer .timer-bar {
+  flex: 1;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.learn-timer .timer-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4ade80, #f5c542);
+  transition: width 0.1s linear;
+}
+
+/* 残り2秒を切ったら赤く点滅 */
+.learn-timer.low .timer-num {
+  color: var(--red-2);
+  text-shadow: 0 0 16px rgba(214, 26, 43, 0.95);
+  animation: timer-num-blink 0.5s steps(2, jump-none) infinite;
+}
+
+.learn-timer.low .timer-bar > span {
+  background: linear-gradient(90deg, #ff7a3d, #d61a2b);
+}
+
+@keyframes timer-num-blink {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+.learn-combo {
+  align-self: center;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a0a04;
+  background: linear-gradient(180deg, var(--gold-2), var(--gold));
+  border: 2px solid #fff3b0;
+  box-shadow: 0 0 18px rgba(245, 197, 66, 0.7);
+  animation: combo-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.learn-combo b {
+  font-size: 22px;
+  margin: 0 2px;
+}
+
+@keyframes combo-pop {
+  0% {
+    transform: scale(0.4) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 確変まで残りカウントダウン */
+.learn-kakuhen-count {
+  align-self: center;
+  padding: 7px 20px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #ff3b4d, #8a0b18);
+  border: 2px solid #ffd8dd;
+  box-shadow: 0 0 20px rgba(214, 26, 43, 0.85);
+  animation:
+    kakuhen-count-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    kakuhen-count-pulse 0.9s ease-in-out infinite;
+}
+
+.learn-kakuhen-count b {
+  font-size: 24px;
+  margin: 0 3px;
+  color: #fff3b0;
+  text-shadow: 0 0 12px rgba(255, 220, 120, 1);
+}
+
+/* 確変中バッジ */
+.learn-kakuhen-badge {
+  align-self: center;
+  padding: 7px 22px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #1a0a04;
+  background: linear-gradient(90deg, #ffd24a, #ff7a3d, #ffd24a, #ff7a3d);
+  background-size: 300% 100%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 26px rgba(255, 190, 60, 1);
+  animation:
+    kakuhen-count-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    kakuhen-rainbow 1.6s linear infinite,
+    plus-blink 0.5s steps(2, jump-none) infinite;
+}
+
+@keyframes kakuhen-count-in {
+  0% {
+    transform: scale(0.4) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes kakuhen-count-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 16px rgba(214, 26, 43, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(255, 90, 110, 1);
+  }
+}
+
+@keyframes kakuhen-rainbow {
+  to {
+    background-position: 300% 0;
+  }
 }
 
 .learn-word {

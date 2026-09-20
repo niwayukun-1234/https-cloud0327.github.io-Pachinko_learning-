@@ -4,7 +4,7 @@ import { Welcome } from "./pages/Welcome/Welcome";
 import { Home } from "./pages/Home/Home";
 import { Learn } from "./pages/Learn/Learn";
 import { Correct } from "./pages/Correct/Correct";
-import { Result } from "./pages/Result/Result";
+import { Fail } from "./pages/Fail/Fail";
 import { PachinkoMode } from "./pages/PachinkoMode/PachinkoMode";
 import { Rewards } from "./pages/Rewards/Rewards";
 import { Words } from "./pages/Words/Words";
@@ -23,7 +23,7 @@ export default function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/correct" element={<Correct />} />
-        <Route path="/result" element={<Result />} />
+        <Route path="/learn/fail" element={<Fail />} />
         <Route path="/pachinko" element={<PachinkoMode />} />
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/words" element={<Words />} />

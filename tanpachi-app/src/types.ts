@@ -4,32 +4,7 @@ export type Word = {
   phonetic: string;
   meaning: string;
   choices: string[]; // includes the correct meaning
-  /** 図鑑No（例: 1 → No.001） */
-  indexNo: number;
-  partOfSpeech: PartOfSpeech;
-  /** 難易度・出題範囲（例: "高校基本 / B1"） */
-  level: string;
-  /** 語義の補足説明 */
-  meaningDetail: string;
-  exampleEn: string;
-  exampleJa: string;
-  /** 頻出コロケーション・表現 */
-  collocations: string[];
-};
-
-export type PartOfSpeech = "動詞" | "名詞" | "形容詞" | "副詞";
-
-/** 図鑑での単語の状態 */
-export type CatalogStatus = "mastered" | "review" | "unlearned";
-
-/** 単語ごとの学習実績（解答・クイズのたびに更新される実データ） */
-export type WordStat = {
-  /** 出題された回数 */
-  count: number;
-  /** 正解した回数 */
-  correct: number;
-  /** 最後に出題された日時 (ISO) */
-  lastAt: string | null;
+  difficulty?: "normal" | "hard";
 };
 
 export type WordStatus = {
