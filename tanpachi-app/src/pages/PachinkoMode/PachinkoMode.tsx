@@ -1,227 +1,591 @@
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { useNavigate } from "react-router-dom";
-import { Fx } from "../../components/Fx";
-import { BookOpen, Gear } from "../../components/Icons";
-import { Logo } from "../../components/Logo";
 import { QuizModal } from "../../components/QuizModal";
 import { QUIZ_TITLE } from "../../data/toeicQuiz";
-import { usePachinkoSpin } from "../../hooks/usePachinkoSpin";
 import { accuracy, useApp } from "../../store/AppContext";
 import { ProgressModal } from "./ProgressModal";
+import { Board } from "./hanamai/Board";
+import { GameAudio } from "./hanamai/audio";
+import { useHanamaiSpin } from "./hanamai/useHanamaiSpin";
 import "./PachinkoMode.css";
 
-const SYMBOLS = ["7", "桜", "玉", "学", "勝", "富"];
-
-/** 出題中に表示するリール(モーダルの背後で回っている想定) */
-const QUIZ_REELS = ["英", "単", "語"];
-
-/** 外れ演出のリール(揃わない) */
-const MISS_REELS = ["3", "4", "8"];
-
-function randomSymbol() {
-  return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-}
+// Vite imports keep assets working under relative/base-path deployments.
+const images = import.meta.glob<string>("./hanamai/assets/*.png", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+const asset = (name: string) => images[`./hanamai/assets/${name}.png`];
 
 export function PachinkoMode() {
   const navigate = useNavigate();
   const { state, spinQuiz } = useApp();
-  const [auto, setAuto] = useState(false);
-  const [fxOn, setFxOn] = useState(true);
-  const [rolling, setRolling] = useState<string[]>(["た", "ん", "パ"]);
-  // 途中結果のモーダル表示。ゲーム状態には一切触れない(開閉するだけ)。
-  const [showProgress, setShowProgress] = useState(false);
-
-  const spin = usePachinkoSpin({
+  const spin = useHanamaiSpin({
     balls: state.balls,
     streak: state.streak,
     onCommit: spinQuiz,
   });
-
-  const { phase, question, judgement, result, canSpin, busy, press, answer } = spin;
-  const { spinCost } = spin.config;
-
-  // リール演出: 回転中はランダム、それ以外は位相に応じた固定表示
+  const { phase, cut, reels, rush, demo, reward, busy, start, finish } = spin;
+  const save = {
+    balls: state.balls,
+    turns: state.totalSpins,
+    wins: state.jackpots,
+  };
+  const [auto, setAuto] = useState(false);
+  const [power, setPower] = useState(3);
+  const [sound, setSound] = useState(false);
+  const [reduced, setReduced] = useState(
+    () => matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  const [modal, setModal] = useState<"menu" | "settings" | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [volume, setVolume] = useState(0.55);
+  const [voice, setVoice] = useState(true);
+  const audio = useRef(new GameAudio());
+  const toggleSound = (on: boolean) => {
+    audio.current.enable(on);
+    setSound(on);
+    if (on) {
+      audio.current.beep(659, 0.15);
+      audio.current.speak("花舞、開幕！");
+    }
+  };
+  const tone = useCallback(
+    (frequency: number, duration = 0.12, delay = 0) =>
+      audio.current.beep(frequency, duration, delay),
+    [],
+  );
   useEffect(() => {
-    if (phase !== "spinning") return;
-    const id = window.setInterval(() => {
-      setRolling([randomSymbol(), randomSymbol(), randomSymbol()]);
-    }, 70);
-    return () => window.clearInterval(id);
-  }, [phase]);
-
-  // オート: PUSH可能になったら自動で押す(クイズの回答はプレイヤーが行う)
+    const engine = audio.current;
+    return () => engine.dispose();
+  }, []);
   useEffect(() => {
-    if (!auto || !canSpin) return;
-    const t = window.setTimeout(() => press(), 450);
-    return () => window.clearTimeout(t);
-  }, [auto, canSpin, press]);
-
-  const isWin = result?.correct === true;
-  const isMiss = result !== null && !result.correct;
-
-  // パチンコ台のリール表示
-  const reels: string[] =
-    phase === "spinning" ? rolling : isWin ? ["7", "7", "7"] : isMiss ? MISS_REELS : QUIZ_REELS;
-
-  const showModal = phase === "quiz" || phase === "judging";
-
+    if (sound && cut && phase === "spin") audio.current.cue(`cut${cut}`);
+  }, [cut, phase, sound]);
+  useEffect(() => {
+    if (!sound) return;
+    if (phase === "quiz") {
+      audio.current.stopSpeech();
+      return;
+    }
+    audio.current.cue(phase);
+  }, [phase, sound]);
+  useEffect(() => {
+    if (phase !== "spin" && phase !== "reach") return;
+    const id = setInterval(
+      () => tone(240, 0.025),
+      phase === "reach" ? 120 : 85,
+    );
+    return () => clearInterval(id);
+  }, [phase, tone]);
+  useEffect(() => {
+    const pause = () => audio.current.enable(sound && !document.hidden);
+    document.addEventListener("visibilitychange", pause);
+    return () => document.removeEventListener("visibilitychange", pause);
+  }, [sound]);
+  useEffect(() => {
+    if (!auto || !spin.canSpin || modal || showProgress) return;
+    const id = setTimeout(() => start(), 850);
+    return () => clearTimeout(id);
+  }, [auto, spin.canSpin, start, modal, showProgress]);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (
+        e.code !== "Space" ||
+        e.repeat ||
+        modal ||
+        showProgress ||
+        (e.target instanceof HTMLElement &&
+          ["INPUT", "BUTTON"].includes(e.target.tagName))
+      )
+        return;
+      if (phase === "quiz" || phase === "judging") return;
+      e.preventDefault();
+      if (phase === "push") finish();
+      else if (phase === "idle") start();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [phase, start, finish, modal, showProgress]);
+  const message = {
+    idle: "学んで、咲かせる。その一瞬を。",
+    spin: "運命が、廻りはじめる。",
+    quiz: "英単語に挑戦！",
+    judging: "学習記録を保存しました。",
+    reach: "想いよ、届け。",
+    push: "一撃に、すべてを。",
+    win: "満開の、その先へ。",
+    miss: "次の一輪を、咲かせよう。",
+  }[phase];
   return (
-    <div className={`pachi ${isWin ? "jackpot" : ""}`}>
-      <Fx sparkles={30} petals={fxOn ? 10 : 0} rays={isWin} />
-      <header className="pachi-header">
-        <button className="back-ghost" onClick={() => navigate("/home")} aria-label="ホームへ">
-          ‹
-        </button>
-        <div className="pachi-title">
-          <span className="deco">❮</span>
-          <span>パチンコモード</span>
-          <span className="deco">❯</span>
-        </div>
-        <button className="icon-btn" aria-label="設定" onClick={() => navigate("/mypage")}>
-          <Gear size={22} />
-        </button>
-      </header>
-
-      <section className="pachi-counter gold-frame">
-        <div>
-          <span className="label">所持玉</span>
-          <span className="value">
-            <span className="ball" />
-            <b>{state.balls.toLocaleString()}</b>
-            <small>玉</small>
-          </span>
-        </div>
-        <div>
-          <span className="label">総回転数</span>
-          <span className="value">
-            <b>{state.totalSpins}</b>
-            <small>回</small>
-          </span>
-        </div>
-        <div>
-          <span className="label">連続正解</span>
-          <span className="value">
-            <b>{state.streak}</b>
-            <small>連</small>
-          </span>
-        </div>
-      </section>
-
-      {/* 途中結果: 現在までの進捗を見るだけ。ゲームは終了しない */}
-      <button
-        type="button"
-        className="p-outcome-bar"
-        onClick={() => setShowProgress(true)}
-        aria-label="途中結果を見る（ゲームは続きます）"
+    <div className={`hanamai-mode ${reduced ? "reduced" : ""}`}>
+      <main
+        className={`hanamai-game ${reduced ? "reduced " : ""}${phase === "win" ? "celebrating" : ""}`}
       >
-        <span className="l">
-          <BookOpen size={14} />
-          <span>途中結果</span>
-        </span>
-        <span className="note">
-          {spin.drawn}/{spin.total}問目 ・ ゲームは続きます
-        </span>
-      </button>
-
-      <section className="machine">
-        <div className="machine-ring">
-          <div className="machine-ring-inner">
-            <div className="machine-face">
-              <div className="machine-logo">
-                <Logo size="md" />
+        <header className="topbar">
+          <div className="brand-art">
+            <img src={asset("logo")} alt="パチ単語" />
+          </div>
+          <div className="balance">
+            <span>所持玉</span>
+            <strong>
+              {save.balls.toLocaleString()}
+              <small> 玉</small>
+            </strong>
+          </div>
+          <button
+            className="utility"
+            onClick={() => setModal("menu")}
+            aria-label="メニュー"
+          >
+            <b>☷</b>
+            <span>メニュー</span>
+          </button>
+          <button
+            className="utility"
+            onClick={() => setModal("settings")}
+            aria-label="設定"
+          >
+            <b>⚙</b>
+            <span>設定</span>
+          </button>
+        </header>
+        <section className={`machine ${phase}`} aria-label="花舞パチンコ">
+          <div className="ambient-sparks" aria-hidden="true">
+            {Array.from({ length: 24 }, (_, i) => (
+              <i
+                key={i}
+                style={{
+                  left: `${(i * 37) % 100}%`,
+                  top: `${(i * 23) % 100}%`,
+                  animationDelay: `${i * 0.17}s`,
+                }}
+              />
+            ))}
+          </div>
+          <div className="energy-ring" aria-hidden="true" />
+          <div className="rail rail-left" />
+          <div className="rail rail-right" />
+          <div className="top-logo">
+            <img src={asset("hanamai")} alt="花舞 HANAMAI" />
+          </div>
+          <div className="cabinet">
+            <div className="inner-board">
+              <Board
+                active={
+                  phase === "spin" || phase === "reach" || phase === "win"
+                }
+                power={power}
+                reduced={reduced}
+              />
+              <div className="hanamai-display">
+                <div className="scene">
+                  <img
+                    src={asset("reference")}
+                    alt="桜が舞う和装の少女の演出"
+                  />
+                </div>
+                <div className="screen-shade" />
+                <div className="screen-top">
+                  <span>{rush ? `桜 RUSH 残り${rush}回` : "通常 1/5"}</span>
+                  <span>{demo ? "DEMO" : `第 ${save.turns} 回転`}</span>
+                </div>
+                <div className="screen-petals">
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <i
+                      key={i}
+                      style={{
+                        left: `${i * 9}%`,
+                        animationDelay: `${i * 0.4}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="screen-caption">
+                  {phase === "reach"
+                    ? "激 熱"
+                    : phase === "win"
+                      ? "桜 花 満 開"
+                      : phase === "push"
+                        ? "一撃で、咲かせろ。"
+                        : rush
+                          ? "桜 RUSH"
+                          : "桜花爛漫"}
+                </div>
+                <div className="reels">
+                  {reels.map((n, i) => (
+                    <div
+                      className={`${n === 7 ? "seven" : ""} ${phase === "spin" || (phase === "reach" && i === 1) ? "rolling" : ""}`}
+                      key={i}
+                    >
+                      {n}
+                      <small>✿</small>
+                    </div>
+                  ))}
+                </div>
+                <div className="screen-bottom">{message}</div>
+                <div className="screen-sweep" aria-hidden="true" />
               </div>
-              <div className="reels">
-                {reels.map((r, i) => (
-                  <span
-                    key={i}
-                    className={`reel ${phase === "spinning" ? "rolling" : "stopped"} ${isWin ? "hit" : ""}`}
-                  >
-                    {r}
+              <img className="side left" src={asset("left")} alt="千本桜" />
+              <img className="side right" src={asset("right")} alt="一撃必勝" />
+              <div className="glass-channel channel-left" />
+              <div className="glass-channel channel-right" />
+              <div className="pocket-flower">
+                <img src={asset("sakura")} alt="桜" />
+              </div>
+              <img
+                className="chance-ornament"
+                src={asset("chance")}
+                alt="CHANCE GO"
+              />
+              <div className="hold-indicators">
+                {[0, 1, 2, 3].map((i) => (
+                  <span className={busy ? "lit" : ""} key={i}>
+                    ✿
                   </span>
                 ))}
               </div>
-              <div className="pins" aria-hidden>
-                {Array.from({ length: 24 }, (_, i) => (
+              <div className="entry-pocket">
+                <span>START</span>
+                <i />
+              </div>
+              <div className="tray" aria-hidden="true" />
+            </div>
+          </div>
+          {cut > 0 && phase === "spin" && (
+            <div
+              key={`${save.turns}-${cut}`}
+              className={`spectacle spectacle-${cut}`}
+              aria-hidden="true"
+            >
+              <div className="speed-lines" />
+              <div className="slash slash-one" />
+              <div className="slash slash-two" />
+              {cut === 2 && (
+                <div className="portrait-cut">
+                  <img src={asset("reference")} alt="" />
+                </div>
+              )}
+              <div className="cut-title">
+                <small>
+                  {cut === 1
+                    ? "SAKURA BURST"
+                    : cut === 2
+                      ? "HANAMAI AWAKENING"
+                      : "BLOOMING STORY"}
+                </small>
+                <strong>
+                  {cut === 1
+                    ? "桜、舞え。"
+                    : cut === 2
+                      ? "花 舞 覚 醒"
+                      : "咲き誇れ！"}
+                </strong>
+                <span>
+                  {cut === 1
+                    ? "千の花びらが、運命を彩る。"
+                    : cut === 2
+                      ? "この一瞬に、想いを込めて。"
+                      : "物語は、まだ終わらない。"}
+                </span>
+              </div>
+            </div>
+          )}
+          {phase === "miss" && (
+            <div className="miss-burst" aria-hidden="true">
+              <div className="speed-lines" />
+              <strong>次の一花へ</strong>
+              <span>SAKURA STORY CONTINUES</span>
+              <div className="petal-burst">
+                {Array.from({ length: 18 }, (_, i) => (
                   <i
                     key={i}
-                    style={{ left: `${(i % 8) * 13 + 6}%`, top: `${Math.floor(i / 8) * 26 + 10}%` }}
+                    style={
+                      {
+                        "--angle": `${i * 20}deg`,
+                        "--distance": `${70 + (i % 4) * 25}px`,
+                      } as CSSProperties
+                    }
                   />
                 ))}
               </div>
-              <span className="kanji-badge left brush">学</span>
-              <span className="kanji-badge right brush">勝</span>
+            </div>
+          )}
+          {(phase === "reach" || phase === "push") && (
+            <div className="cut-in">
+              {phase === "reach" ? (
+                <img src={asset("chance")} alt="CHANCE" />
+              ) : (
+                <button onClick={finish} aria-label="PUSHで結果を開く">
+                  <img src={asset("push")} alt="PUSH" />
+                  <span>押して、咲かせろ。</span>
+                </button>
+              )}
+            </div>
+          )}
+          {phase === "win" && (
+            <div className="win-overlay">
+              <img src={asset("hanamai")} alt="花舞" />
+              <span>桜 花 満 開</span>
+              <strong>大当たり</strong>
+              <div>
+                +{reward.toLocaleString()}
+                <small> 玉</small>
+              </div>
+              <p>{demo ? "演出体験 — DEMO" : "桜 RUSH 突入 · 5回転"}</p>
+            </div>
+          )}
+        </section>
+        <section className="console" aria-label="操作パネル">
+          <button
+            className="audio-toggle"
+            aria-pressed={sound}
+            onClick={() => toggleSound(!sound)}
+          >
+            {sound ? "♪ 音声ON" : "♪ 音声OFF"}
+          </button>
+          <div className="left-controls">
+            <button
+              className={`auto-button ${auto ? "on" : ""}`}
+              role="switch"
+              aria-checked={auto}
+              onClick={() => setAuto((a) => !a)}
+              aria-label="オート"
+            >
+              <span>オート</span>
+              <strong>{auto ? "ON" : "OFF"}</strong>
+            </button>
+            <div className="speed-control">
+              <span>打ち出し速度</span>
+              <div>
+                <button
+                  aria-label="速度を下げる"
+                  disabled={power === 1}
+                  onClick={() => setPower((p) => Math.max(1, p - 1))}
+                >
+                  −
+                </button>
+                <div
+                  className="speed-bars"
+                  role="meter"
+                  aria-label="打ち出し速度"
+                  aria-valuemin={1}
+                  aria-valuemax={5}
+                  aria-valuenow={power}
+                >
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <i
+                      key={i}
+                      className={i <= power ? "lit" : ""}
+                      style={{ height: `${10 + i * 4}px` }}
+                    />
+                  ))}
+                </div>
+                <button
+                  aria-label="速度を上げる"
+                  disabled={power === 5}
+                  onClick={() => setPower((p) => Math.min(5, p + 1))}
+                >
+                  ＋
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        {isWin && result && (
-          <div className="jackpot-banner pop">
-            <span className="brush">大当たり!</span>
-            <span className="win">+{result.reward}玉</span>
+          <div className="launch-group">
+            <button
+              className="launch"
+              disabled={
+                modal !== null ||
+                showProgress ||
+                (phase !== "idle" && phase !== "push") ||
+                (save.balls < 10 && phase !== "push")
+              }
+              onClick={() => (phase === "push" ? finish() : start())}
+              aria-label={phase === "push" ? "PUSHで結果を開く" : "発射する"}
+            >
+              <img src={asset("push")} alt="PUSH 発射" />
+            </button>
+            <span className="play-status" aria-live="polite">
+              {phase === "idle"
+                ? save.balls < 10
+                  ? "玉不足：メニューから学習へ"
+                  : "タップで発射 · 10玉"
+                : phase === "win"
+                  ? "大当たり！"
+                  : phase === "push"
+                    ? "PUSHを押せ！"
+                    : phase === "reach"
+                      ? "激熱リーチ！"
+                      : phase === "spin"
+                        ? "変動中"
+                        : phase === "quiz"
+                          ? "英単語に答えよう"
+                          : phase === "judging"
+                            ? "回答を記録しました"
+                            : "次の回転へ"}
+            </span>
+          </div>
+          <button
+            className="handle"
+            onClick={() => setPower((p) => (p === 5 ? 1 : p + 1))}
+            aria-label={`ハンドル：速度${power}、タップで変更`}
+          >
+            <img src={asset("handle")} alt="ハンドル" />
+          </button>
+          <div className="lower-tray" aria-hidden="true" />
+        </section>
+        {phase === "win" && !reduced && (
+          <div className="confetti">
+            {Array.from({ length: 45 }, (_, i) => (
+              <i
+                key={i}
+                style={{
+                  left: `${(i * 37) % 100}%`,
+                  animationDelay: `${i * 0.045}s`,
+                  background: i % 2 ? "#ffc94e" : "#ff92b0",
+                }}
+              />
+            ))}
           </div>
         )}
-        {isMiss && (
-          <div className="miss-banner pop">
-            <span>ハズレ… 正解は「{question?.correctAnswer ?? ""}」</span>
+        {modal && (
+          <div className="modal-backdrop" onClick={() => setModal(null)}>
+            <section
+              className="modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label={modal === "menu" ? "花舞メニュー" : "演出設定"}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="close"
+                autoFocus
+                onClick={() => setModal(null)}
+              >
+                閉じる ×
+              </button>
+              <h2>{modal === "menu" ? "花舞メニュー" : "演出設定"}</h2>
+              {modal === "menu" ? (
+                <>
+                  <button
+                    className="preview"
+                    onClick={() => {
+                      setModal(null);
+                      setShowProgress(true);
+                    }}
+                  >
+                    途中結果を見る（ゲームは続きます）
+                  </button>
+                  <p>
+                    総回転 {state.totalSpins}回 ／ 大当たり {state.jackpots}回
+                    ／ 連続正解 {state.streak}連
+                  </p>
+                  <p>
+                    1回転10玉。英単語に回答すると回転が確定します。クイズの正誤は学習記録に反映され、大当たりは正誤とは独立に抽選されます。
+                  </p>
+                  <p>
+                    通常は1/5で1,000玉。当たり後は5回転の桜RUSHへ。RUSH中は1/2で1,500玉、再当選で残り5回転に戻ります。画面を離れるとRUSHは終了します。
+                  </p>
+                  <p>
+                    回答前に画面を離れた回転は未確定です。回答後の玉・学習記録は演出途中でも保存されます。カットインやPUSHのタイミングは抽選確率を変えません。
+                  </p>
+                  <button
+                    className="preview"
+                    disabled={busy}
+                    onClick={() => {
+                      setModal(null);
+                      setAuto(false);
+                      start(true);
+                    }}
+                  >
+                    ✧ 大当たり演出を体験（記録に影響なし）
+                  </button>
+                  <div className="menu-links">
+                    <button onClick={() => navigate("/home")}>ホームへ</button>
+                    <button onClick={() => navigate("/learn")}>
+                      英単語を学んで玉を集める
+                    </button>
+                    <button onClick={() => navigate("/rewards")}>
+                      景品交換
+                    </button>
+                    <button onClick={() => navigate("/mypage")}>
+                      マイページ
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <label className="setting-row">
+                    サウンド
+                    <input
+                      type="checkbox"
+                      checked={sound}
+                      onChange={(e) => toggleSound(e.target.checked)}
+                    />
+                  </label>
+                  <label className="setting-row">
+                    音量 {Math.round(volume * 100)}%
+                    <input
+                      aria-label="音量"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step=".05"
+                      value={volume}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setVolume(v);
+                        audio.current.setVolume(v);
+                      }}
+                    />
+                  </label>
+                  <label className="setting-row">
+                    掛け声
+                    <input
+                      type="checkbox"
+                      checked={voice}
+                      onChange={(e) => {
+                        setVoice(e.target.checked);
+                        audio.current.voice = e.target.checked;
+                        if (!e.target.checked) audio.current.stopSpeech();
+                      }}
+                    />
+                  </label>
+                  <label className="setting-row">
+                    動きを抑える
+                    <input
+                      type="checkbox"
+                      checked={reduced}
+                      onChange={(e) => setReduced(e.target.checked)}
+                    />
+                  </label>
+                  <p>
+                    掛け声は端末の日本語音声です。英単語の出題中は掛け声を止め、発音を聞けるようにしています。
+                  </p>
+                </>
+              )}
+            </section>
           </div>
         )}
-      </section>
-
-      <section className="controls">
-        <div className="control-col">
-          <button className={`toggle ${auto ? "on" : ""}`} onClick={() => setAuto((a) => !a)}>
-            <span>オート</span>
-            <b>{auto ? "ON" : "OFF"}</b>
-          </button>
-          <button className={`toggle ${fxOn ? "on" : ""}`} onClick={() => setFxOn((f) => !f)}>
-            <span>演出</span>
-            <b>{fxOn ? "ON" : "OFF"}</b>
-          </button>
-        </div>
-        <button
-          className={`push ${phase === "spinning" ? "spinning" : ""}`}
-          onClick={press}
-          disabled={busy || !canSpin}
-          aria-label="PUSH"
-        >
-          <span className="push-face">PUSH</span>
-        </button>
-        <div className="control-col">
-          <button className="toggle menu-btn" onClick={() => navigate("/rewards")}>
-            <span>🎁</span>
-            <b>メニュー</b>
-          </button>
-          <span className="cost-hint">1回 {spinCost}玉</span>
-        </div>
-      </section>
-
-      <footer className="pachi-footer">
-        <p className="brush">
-          その一打が、
-          <br />
-          未来の自分を変えていく。
-        </p>
-      </footer>
-
-      {!canSpin && phase === "idle" && (
-        <div className="no-balls">
-          玉が足りません。<button onClick={() => navigate("/learn")}>英単語を学んで玉を集める</button>
-        </div>
-      )}
-
-      {/* 1回転=1問の英単語クイズ。背景のパチンコ台は薄暗くぼかして見せる */}
+      </main>
       <QuizModal
-        visible={showModal}
-        question={question}
-        judgement={judgement}
+        visible={phase === "quiz" || phase === "judging"}
+        question={spin.question}
+        judgement={spin.judgement}
         disabled={phase === "judging"}
-        onAnswer={answer}
+        onAnswer={spin.answer}
         title={QUIZ_TITLE}
         streak={state.streak}
         remaining={spin.remaining}
         total={spin.total}
+        independentLottery
       />
-
-      {/* プレイ途中の結果確認。開閉してもゲームは継続したまま */}
       <ProgressModal
         open={showProgress}
         onClose={() => setShowProgress(false)}
