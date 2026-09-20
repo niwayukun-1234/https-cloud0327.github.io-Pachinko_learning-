@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
+    // Allow access via the sandbox preview proxy (dynamic *.sandbox.novita.ai host)
     allowedHosts: true,
   },
 })
