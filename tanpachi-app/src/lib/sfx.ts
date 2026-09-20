@@ -1,5 +1,6 @@
 import { getSettings } from "./settings";
 import kakuhenBgmSrc from "../assets/kakuhen-bgm.mp3";
+import slotBgmSrc from "../assets/slot-bgm.mp3";
 
 // 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
 let currentSfx: HTMLAudioElement | null = null;
@@ -185,4 +186,35 @@ export function stopKakuhenBgm(): void {
   if (!bgm) return;
   bgm.pause();
   bgm.currentTime = 0;
+}
+
+/* ---------- パチンコ（スロット）遊技中のBGM（添付音声をループ再生） ---------- */
+
+let slotBgm: HTMLAudioElement | null = null;
+
+/** スロット遊技中のBGMをループ再生する（既に再生中なら何もしない） */
+export function startSlotBgm(): void {
+  if (!slotBgm) {
+    slotBgm = new Audio(slotBgmSrc);
+    slotBgm.loop = true;
+    slotBgm.volume = 0.45;
+  }
+  if (slotBgm.paused) {
+    void slotBgm.play().catch(() => {
+      /* 自動再生がブロックされた環境では無視（最初のタップで再試行する） */
+    });
+  }
+}
+
+/** 一時停止する（タブが非表示になったとき等。次に再開したときは続きから） */
+export function pauseSlotBgm(): void {
+  if (!slotBgm) return;
+  slotBgm.pause();
+}
+
+/** 停止して先頭に戻す（音声OFFにしたとき・画面を離れるときに呼ぶ） */
+export function stopSlotBgm(): void {
+  if (!slotBgm) return;
+  slotBgm.pause();
+  slotBgm.currentTime = 0;
 }
