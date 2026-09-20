@@ -6,6 +6,8 @@ import { CheckCircle, Speaker, XCircle, Zap } from "./Icons";
 import "./QuizModal.css";
 
 type Props = {
+  /** Learning judgement is separate from a subsequent random lottery. */
+  independentLottery?: boolean;
   /** 表示 / 非表示 */
   visible: boolean;
   /** 現在の問題データ */
@@ -45,6 +47,7 @@ function speak(word: string) {
  * - 回答するとその場で正誤判定が確定する(=クイズが抽選結果そのもの)
  */
 export function QuizModal({
+  independentLottery = false,
   visible,
   question,
   judgement,
@@ -91,7 +94,7 @@ export function QuizModal({
   const locked = disabled || isJudged;
 
   // 7セグ風リール表示: 出題中は「英単語」、判定後は結果を表示
-  const reels = isJudged ? (judgement.correct ? ["7", "7", "7"] : ["3", "4", "8"]) : ["英", "単", "語"];
+  const reels = independentLottery ? ["英", "単", "語"] : isJudged ? (judgement.correct ? ["7", "7", "7"] : ["3", "4", "8"]) : ["英", "単", "語"];
 
   return (
     <div
@@ -157,7 +160,7 @@ export function QuizModal({
                     正解!
                   </span>
                   <span className="quiz-verdict-reward pop">
-                    <Zap size={18} />+{judgement.reward}玉
+                    {independentLottery ? "学習記録に反映・このあと抽選演出" : <><Zap size={18} />+{judgement.reward}玉</>}
                   </span>
                   {judgement.jackpot && <em className="quiz-verdict-fever pop">FEVER BONUS!</em>}
                 </>

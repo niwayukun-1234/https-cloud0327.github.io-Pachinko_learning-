@@ -71,13 +71,15 @@ export type MenuItem = {
  * 「クイズ＝抽選」を1アクションで反映するための型。
  */
 export type QuizSpinResult = {
+  /** hanamai separates quiz correctness from the independent lottery payout. */
+  mode?: "hanamai";
   /** クイズデータ上のID(例: "toeic-1") */
   quizId: string;
   /** 出題された英単語 */
   word: string;
   /** 正解したか */
   correct: boolean;
-  /** 正解時の加算玉(不正解は 0) */
+  /** 加算玉。hanamai ではクイズ正誤に関係なく独立抽選で決まる。 */
   reward: number;
   /** 不正解時の減算玉(案2-Aでは 0) */
   penalty: number;
