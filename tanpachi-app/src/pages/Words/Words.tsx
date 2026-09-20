@@ -68,17 +68,23 @@ export function Words() {
       r.word.word.toLowerCase().includes(q) ||
       r.word.meaning.toLowerCase().includes(q) ||
       r.word.phonetic.toLowerCase().includes(q) ||
-      r.word.meaningDetail.toLowerCase().includes(q)
+      (r.word.meaningDetail ?? "").toLowerCase().includes(q)
     );
   });
 
   const list = [...filtered].sort((a, b) => {
     if (sort === "alpha") return a.word.word.localeCompare(b.word.word);
     if (sort === "reviewFirst")
-      return STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.word.indexNo - b.word.indexNo;
+      return (
+        STATUS_RANK[a.status] - STATUS_RANK[b.status] ||
+        (a.word.indexNo ?? Number.MAX_SAFE_INTEGER) - (b.word.indexNo ?? Number.MAX_SAFE_INTEGER)
+      );
     if (sort === "recent")
-      return (b.stat?.lastAt ?? "").localeCompare(a.stat?.lastAt ?? "") || a.word.indexNo - b.word.indexNo;
-    return a.word.indexNo - b.word.indexNo;
+      return (
+        (b.stat?.lastAt ?? "").localeCompare(a.stat?.lastAt ?? "") ||
+        (a.word.indexNo ?? Number.MAX_SAFE_INTEGER) - (b.word.indexNo ?? Number.MAX_SAFE_INTEGER)
+      );
+    return (a.word.indexNo ?? Number.MAX_SAFE_INTEGER) - (b.word.indexNo ?? Number.MAX_SAFE_INTEGER);
   });
 
   const searching = q.length > 0;
@@ -236,8 +242,12 @@ export function Words() {
                     aria-label={`${r.word.word} の詳細を見る`}
                   >
                     <span className="wt-row-top">
-                      <span className="wt-no">No.{String(r.word.indexNo).padStart(3, "0")}</span>
-                      <span className="wt-pos">{r.word.partOfSpeech}</span>
+                      <span className="wt-no">
+                        {r.word.indexNo === undefined
+                          ? "No.—"
+                          : `No.${String(r.word.indexNo).padStart(3, "0")}`}
+                      </span>
+                      <span className="wt-pos">{r.word.partOfSpeech ?? "—"}</span>
                       <span className={`wt-badge st-${r.status}`}>
                         <StatusMark st={r.status} />
                         {r.status === "mastered" ? "習得済み" : r.status === "review" ? "要復習" : "未習得"}

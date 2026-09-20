@@ -165,6 +165,7 @@ function reducer(state: AppState, action: Action): AppState {
             weak: !action.correct,
           },
         },
+        wordStats: bumpStat(state.wordStats, action.wordId, action.correct),
         history:
           action.correct || delta < 0
             ? [

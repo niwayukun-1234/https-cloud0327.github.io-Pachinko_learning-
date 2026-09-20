@@ -96,14 +96,6 @@ export const WORDS: Word[] = [
     difficulty: "normal",
   },
   {
-    id: "achieve",
-    word: "achieve",
-    phonetic: "[əˈtʃiːv]",
-    meaning: "達成する",
-    choices: ["達成する", "避ける", "比較する", "疑う"],
-    difficulty: "normal",
-  },
-  {
     id: "persist",
     indexNo: 13,
     word: "persist",

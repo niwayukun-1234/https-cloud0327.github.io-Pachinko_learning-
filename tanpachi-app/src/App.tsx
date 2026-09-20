@@ -5,6 +5,7 @@ import { Home } from "./pages/Home/Home";
 import { Learn } from "./pages/Learn/Learn";
 import { Correct } from "./pages/Correct/Correct";
 import { Fail } from "./pages/Fail/Fail";
+import { Result } from "./pages/Result/Result";
 import { PachinkoMode } from "./pages/PachinkoMode/PachinkoMode";
 import { Rewards } from "./pages/Rewards/Rewards";
 import { Words } from "./pages/Words/Words";
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/correct" element={<Correct />} />
         <Route path="/learn/fail" element={<Fail />} />
+        <Route path="/result" element={<Result />} />
         <Route path="/pachinko" element={<PachinkoMode />} />
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/words" element={<Words />} />
