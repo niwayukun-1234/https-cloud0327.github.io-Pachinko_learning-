@@ -173,3 +173,124 @@ export const Trophy = ({ size, ...p }: P) => (
     <path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4v4" />
   </svg>
 );
+export const X = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+export const Zap = ({ size, ...p }: P) => (
+  <svg {...base(size, p)} fill="currentColor" stroke="none">
+    <path d="M13 2L4 14h6l-1 8 9-12h-6z" />
+  </svg>
+);
+export const Sparkles = ({ size, ...p }: P) => (
+  <svg {...base(size, p)} fill="currentColor" stroke="none">
+    <path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z" />
+    <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8z" />
+  </svg>
+);
+export const CheckCircle = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8 12.5l2.5 2.5L16 9.5" />
+  </svg>
+);
+export const XCircle = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9 9l6 6M15 9l-6 6" />
+  </svg>
+);
+export const ArrowRight = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
+export const RotateCcw = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M3 12a9 9 0 1 0 3-6.7" />
+    <path d="M3 4v5h5" />
+  </svg>
+);
+export const Radio = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="12" cy="12" r="2" />
+    <path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 16.2a6 6 0 0 0 0-8.4" />
+    <path d="M5 5a10 10 0 0 0 0 14M19 19a10 10 0 0 0 0-14" />
+  </svg>
+);
+export const TrendingUp = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M3 17l6-6 4 4 7-7" />
+    <path d="M15 8h5v5" />
+  </svg>
+);
+export const Clock = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3.5 2" />
+  </svg>
+);
+export const History = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" />
+    <path d="M3.5 4.5v4h4" />
+    <path d="M12 8v4.5l3 1.8" />
+  </svg>
+);
+export const Plus = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+export const ChevronDown = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+export const ChevronUp = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M6 15l6-6 6 6" />
+  </svg>
+);
+export const Search = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-3.5-3.5" />
+  </svg>
+);
+export const Filter = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M3 5h18l-7 8v6l-4 2v-8z" />
+  </svg>
+);
+export const ArrowUpDown = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M7 4v16M3.5 16.5L7 20l3.5-3.5" />
+    <path d="M17 20V4M13.5 7.5L17 4l3.5 3.5" />
+  </svg>
+);
+export const List = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+export const Lock = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <rect x="4" y="10" width="16" height="10" rx="2" />
+    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+  </svg>
+);
+export const Calendar = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M3 10h18M8 3v4M16 3v4" />
+  </svg>
+);
+export const SearchX = ({ size, ...p }: P) => (
+  <svg {...base(size, p)}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-3.5-3.5" />
+    <path d="M9 9l4 4M13 9l-4 4" />
+  </svg>
+);

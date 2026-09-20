@@ -169,8 +169,8 @@ export function Correct() {
     // 演出が終わったら音楽も必ず止める（確変終了後も鳴り続けるのを防ぐ）
     stopSfx();
     if (finished) {
-      sessionStorage.removeItem("tanpachi:session");
-      navigate("/home", { replace: true });
+      // セッション終了 → 学習結果画面へ
+      navigate("/result", { replace: true });
     } else {
       navigate("/learn", { replace: true });
     }
@@ -414,6 +414,10 @@ export function Correct() {
           <div className="label">現在の所持玉</div>
           <BallCounter value={displayed} size="md" delta={reward} />
         </section>
+
+        <button className="btn-cta correct-next fade-up" style={{ animationDelay: "0.45s" }} onClick={next}>
+          {finished ? "結果を見る" : "次の問題へ"}
+        </button>
       </div>
     </div>
   );

@@ -22,6 +22,10 @@
   --radius: 14px;
   --font: "Noto Sans JP", system-ui, -apple-system, sans-serif;
   --font-brush: "Yuji Syuku", "Noto Sans JP", serif;
+  /* 数値・スコア用（リザルト画面） */
+  --font-num: "Rajdhani", "Noto Sans JP", system-ui, sans-serif;
+  /* 見出し用（リザルト画面） */
+  --font-zen: "Zen Kaku Gothic New", "Noto Sans JP", system-ui, sans-serif;
 }
 
 *,

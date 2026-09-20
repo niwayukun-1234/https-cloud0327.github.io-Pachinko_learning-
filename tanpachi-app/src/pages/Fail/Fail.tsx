@@ -68,8 +68,7 @@ export function Fail() {
     // 演出が終わったら音楽も必ず止める（確変終了後も鳴り続けるのを防ぐ）
     stopSfx();
     if (finished) {
-      sessionStorage.removeItem("tanpachi:session");
-      navigate("/home", { replace: true });
+      navigate("/result", { replace: true });
     } else {
       navigate("/learn", { replace: true });
     }
