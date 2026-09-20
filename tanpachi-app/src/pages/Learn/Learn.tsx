@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Fx } from "../../components/Fx";
 import { Header } from "../../components/Header";
-import { Gear, Speaker } from "../../components/Icons";
+import { Speaker } from "../../components/Icons";
 import {
   LEARN_RESULT_KEY,
   LEARN_REVIEW_KEY,
@@ -14,6 +14,9 @@ import { WORDS } from "../../data/words";
 import { shuffle } from "../../lib/random";
 import { speak } from "../../lib/speech";
 import { useApp } from "../../store/AppContext";
+import { rollMidBonus } from "../../lib/bonus";
+import { getSettings, useMenuOpen, useSettings } from "../../lib/settings";
+import { startKakuhenBgm, stopKakuhenBgm } from "../../lib/sfx";
 import type { LearnSessionResult, SessionAnswer } from "../../types";
 import "./Learn.css";
 
@@ -171,12 +174,17 @@ function writeResult(s: Session) {
 
 export function Learn() {
   const navigate = useNavigate();
-  const { answer } = useApp();
+  const { answer, addBalls } = useApp();
+  const { sound } = useSettings();
+  // ハンバーガーメニューを開いている間は制限時間を止める
+  const menuOpen = useMenuOpen();
   const [session] = useState<Session>(loadSession);
   const [selected, setSelected] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(QUESTION_MS);
   // 回答済みフラグ（時間切れとの二重発火を防ぐ）
   const answeredRef = useRef(false);
+  // メニューで一時停止しても続きから再開できるよう、経過時間を累積する
+  const elapsedRef = useRef(0);
   const questionAt = useRef(0);
 
   const total = session.order.length || TOTAL;
@@ -242,14 +250,35 @@ export function Learn() {
     [answer, navigate],
   );
 
-  // 制限時間タイマー（6秒）。時間切れで失敗演出へ。
+  // 問題が変わったら回答状態と経過時間をリセット
   useEffect(() => {
     answeredRef.current = false;
+    elapsedRef.current = 0;
     setTimeLeft(QUESTION_MS);
+  }, [session.index]);
+
+  // 確変中は添付音声をBGMとしてループ再生（音オフ設定なら鳴らさない）
+  useEffect(() => {
+    if (!session.kakuhen || !sound) {
+      stopKakuhenBgm();
+      return;
+    }
+    startKakuhenBgm();
+    // 画面を離れたら（ホームへ戻る等）BGMを止める
+    return () => stopKakuhenBgm();
+  }, [session.kakuhen, sound]);
+
+  // 制限時間タイマー（6秒）。時間切れで失敗演出へ。
+  //  - ハンバーガーを開いている間は経過時間を進めず、閉じたら続きから再開する
+  useEffect(() => {
+    if (menuOpen) return;
+    const remaining = QUESTION_MS - elapsedRef.current;
+    if (remaining <= 0) return;
+    setTimeLeft(remaining);
     const start = performance.now();
     questionAt.current = start;
     const id = window.setInterval(() => {
-      const left = Math.max(0, QUESTION_MS - (performance.now() - start));
+      const left = Math.max(0, QUESTION_MS - (elapsedRef.current + (performance.now() - start)));
       setTimeLeft(left);
       if (left <= 0) window.clearInterval(id);
     }, 100);
@@ -257,12 +286,14 @@ export function Learn() {
       if (answeredRef.current) return;
       answeredRef.current = true;
       goFail("timeout");
-    }, QUESTION_MS);
+    }, remaining);
     return () => {
       window.clearInterval(id);
       window.clearTimeout(to);
+      // 経過時間を保存（メニュー一時停止からの再開に使う）
+      elapsedRef.current += performance.now() - start;
     };
-  }, [session.index, goFail]);
+  }, [session.index, goFail, menuOpen]);
 
   const choose = (c: string) => {
     if (selected || answeredRef.current) return;
@@ -275,10 +306,12 @@ export function Learn() {
     }
 
     // ---- 正解 ----
+    // 設定で確変がオフなら確変に入らない
+    const settings = getSettings();
     const combo = (session.combo ?? 0) + 1;
     const wasKakuhen = session.kakuhen ?? false;
     const kakuhenAt = session.kakuhenAt ?? randInt(KAKUHEN_MIN_COMBO, KAKUHEN_MAX_COMBO);
-    const entering = !wasKakuhen && combo >= kakuhenAt;
+    const entering = settings.kakuhenEnabled && !wasKakuhen && combo >= kakuhenAt;
     // この問題時点で確変中だったか（ボーナス判定に使用）
     const activeThisQ = wasKakuhen || entering;
 
@@ -314,8 +347,14 @@ export function Learn() {
 
     const bonus = activeThisQ ? KAKUHEN_BONUS : 0;
     const reward = REWARD * combo + bonus;
+    // 長い演出（確変1回目 / 3連続正解）のときは、演出の途中で出る中間ボーナスを抽選
+    const kakuhenFirst = kakuhen && kakuhenCount === 1;
+    const isTriple = combo === 3 && !kakuhen;
+    const longAnim = kakuhenFirst || isTriple;
+    const midBonus = longAnim ? rollMidBonus(kakuhen) : 0;
     // 連続正解でミス連続が途切れる
     answer(word.id, true, reward);
+    if (midBonus > 0) addBalls(midBonus, "スペシャルボーナス");
 
     const seconds = Math.max(0.1, (performance.now() - questionAt.current) / 1000);
     const next: Session = {
@@ -363,10 +402,11 @@ export function Learn() {
         word: word.word,
         reward,
         bonus,
+        midBonus,
         combo,
         kakuhen,
         // 確変中の1回目だけ専用BGMで大きく演出する
-        kakuhenFirst: kakuhen && kakuhenCount === 1,
+        kakuhenFirst,
         finished: next.index >= TOTAL,
       },
     });
@@ -380,15 +420,7 @@ export function Learn() {
     <div className={`learn${session.kakuhen ? " kakuhen" : ""}`}>
       {session.kakuhen && <div className="learn-rainbow" aria-hidden />}
       <Fx petals={10} sparkles={16} />
-      <Header
-        title="学習モード"
-        back="/home"
-        right={
-          <button className="icon-btn" aria-label="設定" onClick={() => navigate("/mypage")}>
-            <Gear size={22} />
-          </button>
-        }
-      />
+      <Header title="学習モード" back="/home" />
       <div className="learn-body">
         <div className="learn-progress">
           <div className="progress">

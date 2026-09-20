@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import kakuhenSfx from "../../assets/kakuhen.mp3";
-import { playMiss, playSfx } from "../../lib/sfx";
+import { playMiss, playSfx, stopKakuhenBgm, stopSfx } from "../../lib/sfx";
 import "./Fail.css";
 
 type FailKind = "miss" | "timeout" | "kakuhenEnd";
@@ -42,10 +42,12 @@ export function Fail() {
       : kind === "kakuhenEnd"
         ? "確変終了"
         : "失敗";
-  const cls = `fail-title${title.length > 2 ? " long" : ""}`;
+  const cls = `fail-title${title.length >= 5 ? " long2" : title.length > 2 ? " long" : ""}`;
 
-  // 外れっぽい効果音を一度だけ鳴らす
+  // 外れっぽい効果音を一度だけ鳴らす。
+  // 失敗演出に入った時点で確変BGMは止める（この後 revive 時のみ再開する）。
   useEffect(() => {
+    stopKakuhenBgm();
     if (playedRef.current) return;
     playedRef.current = true;
     playMiss();
@@ -63,6 +65,8 @@ export function Fail() {
   }, [revive]);
 
   const next = useCallback(() => {
+    // 演出が終わったら音楽も必ず止める（確変終了後も鳴り続けるのを防ぐ）
+    stopSfx();
     if (finished) {
       navigate("/result", { replace: true });
     } else {

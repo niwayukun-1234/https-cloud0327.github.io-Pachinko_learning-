@@ -44,6 +44,7 @@ export type AppState = {
 
 type Action =
   | { type: "ANSWER"; wordId: string; correct: boolean; reward: number; penalty: number }
+  | { type: "ADD_BALLS"; amount: number; reason: string }
   | { type: "SPIN"; cost: number; win: number; jackpot: boolean }
   | { type: "SPIN_QUIZ"; result: QuizSpinResult }
   | { type: "RECORD_SESSION"; sessionId: string; score: number; minutes: number }
@@ -180,6 +181,20 @@ function reducer(state: AppState, action: Action): AppState {
             : state.history,
       };
     }
+    case "ADD_BALLS": {
+      return {
+        ...state,
+        balls: Math.max(0, state.balls + action.amount),
+        earnedToday: action.amount > 0 ? state.earnedToday + action.amount : state.earnedToday,
+        history:
+          action.amount !== 0
+            ? [
+                { id: uid(), at: new Date().toISOString(), delta: action.amount, reason: action.reason },
+                ...state.history,
+              ].slice(0, 50)
+            : state.history,
+      };
+    }
     case "SPIN": {
       const delta = action.win - action.cost;
       return {
@@ -301,6 +316,7 @@ function loadState(): AppState {
 type Ctx = {
   state: AppState;
   answer: (wordId: string, correct: boolean, reward?: number, penalty?: number) => void;
+  addBalls: (amount: number, reason: string) => void;
   spin: (cost: number, win: number, jackpot: boolean) => void;
   /** クイズ=抽選の1回転分をまとめて確定させる */
   spinQuiz: (result: QuizSpinResult) => void;
@@ -325,6 +341,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const answer = useCallback(
     (wordId: string, correct: boolean, reward = 10, penalty = 0) =>
       dispatch({ type: "ANSWER", wordId, correct, reward, penalty }),
+    [],
+  );
+  const addBalls = useCallback(
+    (amount: number, reason: string) => dispatch({ type: "ADD_BALLS", amount, reason }),
     [],
   );
   const spin = useCallback(
@@ -353,8 +373,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
 
   const value = useMemo(
-    () => ({ state, answer, spin, spinQuiz, recordSession, toggleStar, setReview, purchase, reset }),
-    [state, answer, spin, spinQuiz, recordSession, toggleStar, setReview, purchase, reset],
+    () => ({ state, answer, addBalls, spin, spinQuiz, recordSession, toggleStar, setReview, purchase, reset }),
+    [state, answer, addBalls, spin, spinQuiz, recordSession, toggleStar, setReview, purchase, reset],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

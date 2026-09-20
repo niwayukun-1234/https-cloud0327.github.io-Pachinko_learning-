@@ -25,12 +25,13 @@ function StatusBar() {
   );
 }
 
-export function Device({ children }: { children: ReactNode }) {
+export function Device({ children, overlay }: { children: ReactNode; overlay?: ReactNode }) {
   return (
     <div className="device-wrap">
       <div className="device">
         <StatusBar />
         <div className="screen">{children}</div>
+        {overlay}
       </div>
     </div>
   );

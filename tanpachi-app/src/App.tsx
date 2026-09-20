@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Device } from "./components/Device";
+import { SettingsMenu } from "./components/SettingsMenu";
 import { Welcome } from "./pages/Welcome/Welcome";
 import { Home } from "./pages/Home/Home";
 import { Learn } from "./pages/Learn/Learn";
@@ -14,10 +16,22 @@ import { MyPage } from "./pages/MyPage/MyPage";
 import { MenuPage } from "./pages/MenuPage/MenuPage";
 import { Login } from "./pages/Login/Login";
 import { BallHistory } from "./pages/BallHistory/BallHistory";
+import { useSettings } from "./lib/settings";
 
 export default function App() {
+  const { brightness } = useSettings();
+
+  // 明るさ設定をアプリ全体に反映（CSS 変数 + filter）
+  useEffect(() => {
+    const el = document.documentElement;
+    el.style.setProperty("--app-brightness", String(brightness));
+    el.style.setProperty("--app-brightness-filter", `brightness(${brightness})`);
+  }, [brightness]);
+
   return (
-    <Device>
+    <Device
+      overlay={<SettingsMenu />}
+    >
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
