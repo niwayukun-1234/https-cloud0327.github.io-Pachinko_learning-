@@ -117,18 +117,7 @@ export function Home() {
           </div>
         </section>
 
-        <button
-          className="btn-cta blue home-cta"
-          onClick={() => navigate("/pachinko", { state: { difficulty } })}
-        >
-          <span className="cta-row">
-            <Pachinko size={28} />
-            <span>
-              パチンコを始める
-              <span className="sub">TOEIC {difficulty}点レベルで出題！</span>
-            </span>
-          </span>
-        </button>
+        
       </div>
       <TabBar />
     </>
