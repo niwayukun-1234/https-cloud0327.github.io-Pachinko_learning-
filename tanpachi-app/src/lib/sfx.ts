@@ -30,6 +30,61 @@ export function stopSfx(): void {
   }
 }
 
+/** 追加ボーナス用のファンファーレ。level(1〜4) が高いほど音数と音量が増えて派手になる */
+export function playBonus(level: number): void {
+  // 設定で「演出の音」がオフなら鳴らさない
+  if (!getSettings().sound) return;
+  const ac = getCtx();
+  if (!ac) return;
+  const lv = Math.max(1, Math.min(4, Math.round(level)));
+  const t0 = ac.currentTime + 0.02;
+
+  const master = ac.createGain();
+  master.gain.value = 0.4 + lv * 0.07; // レベルが高いほど大きい
+  master.connect(ac.destination);
+
+  // 上昇するアルペジオ（レベルが高いほど音数が増える）
+  const scales = [
+    [523.25, 659.25, 783.99], // C5 E5 G5
+    [523.25, 659.25, 783.99, 1046.5], // +C6
+    [523.25, 659.25, 783.99, 1046.5, 1318.5], // +E6
+    [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98], // +G6
+  ];
+  const notes = scales[lv - 1];
+  const step = 0.085;
+  notes.forEach((f, i) => {
+    const t = t0 + i * step;
+    const osc = ac.createOscillator();
+    const g = ac.createGain();
+    osc.type = lv >= 4 ? "sawtooth" : "triangle";
+    osc.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    osc.connect(g).connect(master);
+    osc.start(t);
+    osc.stop(t + 0.36);
+  });
+
+  // 高レベルは最後に「ジャーン」と和音の余韻を重ねる
+  if (lv >= 3) {
+    const t = t0 + notes.length * step;
+    const chord = lv >= 4 ? [523.25, 659.25, 783.99, 1046.5, 1318.5] : [523.25, 659.25, 783.99, 1046.5];
+    chord.forEach((f) => {
+      const osc = ac.createOscillator();
+      const g = ac.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(lv >= 4 ? 0.34 : 0.28, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (lv >= 4 ? 1.3 : 1.0));
+      osc.connect(g).connect(master);
+      osc.start(t);
+      osc.stop(t + 1.4);
+    });
+  }
+}
+
 // 外れっぽい効果音を Web Audio で合成する（追加アセット不要）。
 let ctx: AudioContext | null = null;
 

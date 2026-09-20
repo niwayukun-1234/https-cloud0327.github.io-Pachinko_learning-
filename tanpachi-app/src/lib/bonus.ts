@@ -24,3 +24,14 @@ export function rollMidBonus(kakuhen: boolean): number {
 export function isBigBonus(n: number): boolean {
   return n >= 500;
 }
+
+/**
+ * 中間ボーナスの規模を 1〜4 の演出レベルに変換する。
+ * 数値が大きいほど演出・音を豪華にするために使う。
+ */
+export function midBonusTier(n: number): number {
+  if (n >= 500) return 4;
+  if (n >= 150) return 3;
+  if (n >= 100) return 2;
+  return 1;
+}

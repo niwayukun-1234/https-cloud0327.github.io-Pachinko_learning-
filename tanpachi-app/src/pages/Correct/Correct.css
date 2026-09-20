@@ -548,6 +548,7 @@
 }
 
 .correct-bonus.show {
+  opacity: 1;
   animation: bonus-reveal 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both, bonus-glow 0.6s ease-in-out 0.7s infinite;
 }
 
@@ -590,6 +591,7 @@
 
 /* 大当たり（+500 / +1000）は金色でさらに派手に */
 .correct-midbonus.big {
+  opacity: 1;
   background: linear-gradient(90deg, #ffe08a, #ffb02e, #ff5a6e, #ffb02e, #ffe08a);
   background-size: 300% 100%;
   border-width: 3px;
@@ -631,6 +633,135 @@
   100% {
     opacity: 0;
   }
+}
+
+/* ---------- 中間ボーナス: 玉数(tier)が上がるほど演出を豪華にする ---------- */
+
+/* tier2+: 中央から弾ける光の輪（tierが上がるほど大きく・強く） */
+.correct-mid-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  width: 180px;
+  height: 180px;
+  margin: -90px 0 0 -90px;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 40px 12px rgba(120, 210, 255, 0.9),
+    inset 0 0 40px 8px rgba(255, 255, 255, 0.7);
+  mix-blend-mode: screen;
+  animation: mid-burst 1.1s ease-out infinite;
+}
+.mid-tier-2 .correct-mid-burst,
+.correct-mid-burst.mid-tier-2 {
+  width: 200px;
+  height: 200px;
+  margin: -100px 0 0 -100px;
+  border-color: rgba(120, 240, 255, 0.95);
+}
+.mid-tier-3 .correct-mid-burst,
+.correct-mid-burst.mid-tier-3 {
+  width: 240px;
+  height: 240px;
+  margin: -120px 0 0 -120px;
+  border-width: 8px;
+  border-color: rgba(255, 220, 120, 0.98);
+  box-shadow:
+    0 0 54px 16px rgba(255, 190, 60, 0.95),
+    inset 0 0 46px 10px rgba(255, 255, 255, 0.8);
+  animation-duration: 0.85s;
+}
+.mid-tier-4 .correct-mid-burst,
+.correct-mid-burst.mid-tier-4 {
+  width: 300px;
+  height: 300px;
+  margin: -150px 0 0 -150px;
+  border-width: 10px;
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow:
+    0 0 70px 22px rgba(255, 90, 110, 0.95),
+    0 0 40px 14px rgba(255, 220, 120, 0.95),
+    inset 0 0 56px 12px rgba(255, 255, 255, 0.9);
+  animation-duration: 0.7s;
+}
+
+@keyframes mid-burst {
+  0% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* tier3+: 花火（tierが上がるほど数・速さが増す） */
+.correct-mid-fireworks {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.correct-mid-fireworks span {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 14px 5px rgba(255, 220, 120, 0.95),
+    0 -30px 0 -1px #ffd24a,
+    0 30px 0 -1px #ff7a3d,
+    -30px 0 0 -1px #6ce0ff,
+    30px 0 0 -1px #ff6bb5,
+    -21px -21px 0 -2px #b6ff6b,
+    21px 21px 0 -2px #ffd24a,
+    -21px 21px 0 -2px #6ce0ff,
+    21px -21px 0 -2px #ff6bb5;
+  animation: firework-burst 1.05s ease-out infinite;
+  opacity: 0;
+}
+
+.mid-tier-4 .correct-mid-fireworks span {
+  width: 13px;
+  height: 13px;
+  box-shadow:
+    0 0 20px 7px rgba(255, 255, 255, 1),
+    0 -38px 0 -1px #ffd24a,
+    0 38px 0 -1px #ff7a3d,
+    -38px 0 0 -1px #6ce0ff,
+    38px 0 0 -1px #ff6bb5,
+    -27px -27px 0 -2px #b6ff6b,
+    27px 27px 0 -2px #ffd24a,
+    -27px 27px 0 -2px #6ce0ff,
+    27px -27px 0 -2px #ff6bb5;
+  animation-duration: 0.8s;
+}
+
+/* tier4: レインボーの全画面フラッシュ */
+.correct-mid-rainbow {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 80, 0.4),
+    rgba(255, 154, 0, 0.4),
+    rgba(255, 240, 0, 0.4),
+    rgba(74, 222, 128, 0.4),
+    rgba(56, 189, 248, 0.4),
+    rgba(167, 139, 250, 0.4)
+  );
+  mix-blend-mode: screen;
+  animation: rainbow-cycle 1s linear infinite;
 }
 
 /* 中間ボーナスと共に「正解」が回転しながら拡大 */
@@ -699,6 +830,7 @@
   }
   100% {
     transform: scale(1) rotate(0deg);
+    opacity: 1;
   }
 }
 

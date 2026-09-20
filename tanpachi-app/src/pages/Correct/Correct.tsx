@@ -6,8 +6,8 @@ import { useApp } from "../../store/AppContext";
 import correctSfx from "../../assets/correct.mp3";
 import kakuhenSfx from "../../assets/kakuhen.mp3";
 import tripleSfx from "../../assets/triple.mp3";
-import { playSfx, stopSfx } from "../../lib/sfx";
-import { isBigBonus } from "../../lib/bonus";
+import { playBonus, playSfx, stopSfx } from "../../lib/sfx";
+import { isBigBonus, midBonusTier } from "../../lib/bonus";
 import { useSettings } from "../../lib/settings";
 import "./Correct.css";
 
@@ -75,6 +75,8 @@ export function Correct() {
   const longAnim = big || isTriple;
   const showMid = longAnim && midBonus > 0;
   const midBig = isBigBonus(midBonus);
+  // 中間ボーナスの玉数が大きいほど演出・音を豪華にするためのレベル(1〜4)
+  const midTier = showMid ? midBonusTier(midBonus) : 0;
   const animMs = big ? KAKUHEN_MS : isTriple ? TRIPLE_MS : HOLD_MS;
 
   // この問題に入る前の所持玉（報酬・中間ボーナスを差し引いて求める）
@@ -139,6 +141,12 @@ export function Correct() {
     const t = window.setTimeout(() => setMidRevealed(true), animMs * 0.5);
     return () => window.clearTimeout(t);
   }, [showMid, animMs]);
+
+  // 中間ボーナス出現の瞬間に、規模に応じたファンファーレを鳴らす
+  useEffect(() => {
+    if (!showMid || !midRevealed) return;
+    playBonus(midTier);
+  }, [showMid, midRevealed, midTier]);
 
   // 正解効果音を再生。StrictMode の二重実行でも一度だけ鳴らす。
   useEffect(() => {
@@ -305,7 +313,28 @@ export function Correct() {
       )}
       {tier >= 4 && <div className="correct-rainbow" aria-hidden />}
       {big && <div className="correct-kakuhen-flash" aria-hidden />}
-      {showMid && midRevealed && <div className="correct-mid-flash" aria-hidden />}
+      {/* 中間ボーナス: 玉数(tier)が大きいほど演出を重ねて豪華にする */}
+      {showMid && midRevealed && (
+        <>
+          <div className={`correct-mid-flash mid-tier-${midTier}`} aria-hidden />
+          {midTier >= 2 && <div className={`correct-mid-burst mid-tier-${midTier}`} aria-hidden />}
+          {midTier >= 3 && (
+            <div className="correct-mid-fireworks" aria-hidden>
+              {Array.from({ length: midTier * 4 }, (_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    left: `${8 + i * (84 / (midTier * 4))}%`,
+                    top: `${14 + (i % 4) * 18}%`,
+                    animationDelay: `${0.1 + i * 0.16}s`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          {midTier >= 4 && <div className="correct-mid-rainbow" aria-hidden />}
+        </>
+      )}
       <div className="correct-confetti" aria-hidden>
         {coins.map((c) => (
           <span
@@ -361,9 +390,9 @@ export function Correct() {
         {/* 中間ボーナス: 演出のちょうど半分で出現（＋正解文字の回転・拡大） */}
         {showMid && (
           <div
-            className={`correct-bonus correct-midbonus${midRevealed ? " show" : ""}${
-              midBig ? " big" : ""
-            }`}
+            className={`correct-bonus correct-midbonus mid-tier-${midTier}${
+              midRevealed ? " show" : ""
+            }${midBig ? " big" : ""}`}
           >
             <span className="bonus-label">{midBig ? "大当たり!" : "スペシャルボーナス"}</span>
             <span className="bonus-num">+{midBonus}</span>
