@@ -3,8 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { Fx } from "../../components/Fx";
 import { Header } from "../../components/Header";
 import { Gear, Speaker } from "../../components/Icons";
+import {
+  LEARN_RESULT_KEY,
+  LEARN_REVIEW_KEY,
+  LEARN_REWARD,
+  LEARN_SESSION_KEY,
+  LEARN_TOTAL,
+} from "../../data/learn";
 import { WORDS } from "../../data/words";
+import { shuffle } from "../../lib/random";
+import { speak } from "../../lib/speech";
 import { useApp } from "../../store/AppContext";
+import type { LearnSessionResult, SessionAnswer } from "../../types";
 import "./Learn.css";
 
 const TOTAL = 10;
@@ -42,13 +52,18 @@ function randInt(min: number, max: number) {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+/** 復習モードで引き継いだ単語IDを取得する */
+function takeReviewIds(): string[] {
+  try {
+    const raw = sessionStorage.getItem(LEARN_REVIEW_KEY);
+    if (!raw) return [];
+    sessionStorage.removeItem(LEARN_REVIEW_KEY);
+    const ids = JSON.parse(raw) as unknown;
+    if (!Array.isArray(ids)) return [];
+    return ids.filter((id): id is string => typeof id === "string" && WORDS.some((w) => w.id === id));
+  } catch {
+    return [];
   }
-  return a;
 }
 
 /** 残り問題を「難しい問題優先」の並びに組み替える（確変中用） */
@@ -64,12 +79,12 @@ function hardFirst(count: number): string[] {
 function loadSession(): Session {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
-    if (raw) {
-      const s = JSON.parse(raw) as Session;
-      if (s.index < TOTAL) return s;
-    }
+    if (!raw) return null;
+    const s = JSON.parse(raw) as Session;
+    // 旧形式のセッションには answers / startedAt が無いため補う
+    return { ...s, answers: s.answers ?? [], startedAt: s.startedAt ?? Date.now() };
   } catch {
-    /* ignore */
+    return null;
   }
   const ids = WORDS.map((w) => w.id);
   const order: string[] = [];
@@ -91,6 +106,19 @@ function loadSession(): Session {
   return s;
 }
 
+/** 完了したセッションをリザルト画面用に書き出す */
+function writeResult(s: Session) {
+  const result: LearnSessionResult = {
+    id: `${s.startedAt}-${s.answers.length}`,
+    finishedAt: new Date().toISOString(),
+    answers: s.answers,
+    earnedBalls: s.answers.filter((a) => a.correct).length * REWARD,
+    startedAt: s.startedAt,
+  };
+  sessionStorage.setItem(LEARN_RESULT_KEY, JSON.stringify(result));
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
 export function Learn() {
   const navigate = useNavigate();
   const { answer } = useApp();
@@ -100,6 +128,7 @@ export function Learn() {
   // 回答済みフラグ（時間切れとの二重発火を防ぐ）
   const answeredRef = useRef(false);
 
+  const total = session.order.length || TOTAL;
   const word = useMemo(
     () => WORDS.find((w) => w.id === session.order[session.index]) ?? WORDS[0],
     [session],
@@ -288,7 +317,7 @@ export function Learn() {
       <div className="learn-body">
         <div className="learn-progress">
           <div className="progress">
-            <span style={{ width: `${((session.index + 1) / TOTAL) * 100}%` }} />
+            <span style={{ width: `${((session.index + 1) / total) * 100}%` }} />
           </div>
           <span className="count">
             <b>{session.index + 1}</b>問
@@ -315,7 +344,7 @@ export function Learn() {
           <h1>{word.word}</h1>
           <div className="phon-row">
             <span className="phon">{word.phonetic}</span>
-            <button className="icon-btn" onClick={speak} aria-label="発音を聞く">
+            <button className="icon-btn" onClick={playWord} aria-label="発音を聞く">
               <Speaker size={22} />
             </button>
           </div>
@@ -336,7 +365,7 @@ export function Learn() {
               <button
                 key={c}
                 className={`choice ${state}`}
-                onClick={() => choose(c)}
+                onClick={(e) => choose(c, e.timeStamp)}
                 disabled={selected !== null}
               >
                 {c}
