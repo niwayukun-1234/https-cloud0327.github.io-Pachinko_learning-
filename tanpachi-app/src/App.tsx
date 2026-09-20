@@ -28,12 +28,7 @@ export default function App() {
 
   return (
     <Device
-      overlay={
-        <>
-          {/* 右上のハンバーガーから開く演出設定 */}
-          <SettingsMenu />
-        </>
-      }
+      overlay={<SettingsMenu />}
     >
       <Routes>
         <Route path="/" element={<Welcome />} />
@@ -50,8 +45,6 @@ export default function App() {
         <Route path="/history" element={<BallHistory />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {/* 右上のハンバーガーから開く演出設定 */}
-      <SettingsMenu />
     </Device>
   );
 }

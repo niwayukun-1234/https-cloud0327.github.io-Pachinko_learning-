@@ -6,7 +6,8 @@ import { Speaker } from "../../components/Icons";
 import { WORDS } from "../../data/words";
 import { useApp } from "../../store/AppContext";
 import { rollMidBonus } from "../../lib/bonus";
-import { getSettings } from "../../lib/settings";
+import { getSettings, useMenuOpen, useSettings } from "../../lib/settings";
+import { startKakuhenBgm, stopKakuhenBgm } from "../../lib/sfx";
 import "./Learn.css";
 
 const TOTAL = 10;
@@ -96,11 +97,16 @@ function loadSession(): Session {
 export function Learn() {
   const navigate = useNavigate();
   const { answer, addBalls } = useApp();
+  const { sound } = useSettings();
+  // ハンバーガーメニューを開いている間は制限時間を止める
+  const menuOpen = useMenuOpen();
   const [session] = useState<Session>(loadSession);
   const [selected, setSelected] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(QUESTION_MS);
   // 回答済みフラグ（時間切れとの二重発火を防ぐ）
   const answeredRef = useRef(false);
+  // メニューで一時停止しても続きから再開できるよう、経過時間を累積する
+  const elapsedRef = useRef(0);
 
   const word = useMemo(
     () => WORDS.find((w) => w.id === session.order[session.index]) ?? WORDS[0],
@@ -156,13 +162,34 @@ export function Learn() {
     [answer, navigate],
   );
 
-  // 制限時間タイマー（6秒）。時間切れで失敗演出へ。
+  // 問題が変わったら回答状態と経過時間をリセット
   useEffect(() => {
     answeredRef.current = false;
+    elapsedRef.current = 0;
     setTimeLeft(QUESTION_MS);
+  }, [session.index]);
+
+  // 確変中は添付音声をBGMとしてループ再生（音オフ設定なら鳴らさない）
+  useEffect(() => {
+    if (!session.kakuhen || !sound) {
+      stopKakuhenBgm();
+      return;
+    }
+    startKakuhenBgm();
+    // 画面を離れたら（ホームへ戻る等）BGMを止める
+    return () => stopKakuhenBgm();
+  }, [session.kakuhen, sound]);
+
+  // 制限時間タイマー（6秒）。時間切れで失敗演出へ。
+  //  - ハンバーガーを開いている間は経過時間を進めず、閉じたら続きから再開する
+  useEffect(() => {
+    if (menuOpen) return;
+    const remaining = QUESTION_MS - elapsedRef.current;
+    if (remaining <= 0) return;
+    setTimeLeft(remaining);
     const start = performance.now();
     const id = window.setInterval(() => {
-      const left = Math.max(0, QUESTION_MS - (performance.now() - start));
+      const left = Math.max(0, QUESTION_MS - (elapsedRef.current + (performance.now() - start)));
       setTimeLeft(left);
       if (left <= 0) window.clearInterval(id);
     }, 100);
@@ -170,12 +197,14 @@ export function Learn() {
       if (answeredRef.current) return;
       answeredRef.current = true;
       goFail("timeout");
-    }, QUESTION_MS);
+    }, remaining);
     return () => {
       window.clearInterval(id);
       window.clearTimeout(to);
+      // 経過時間を保存（メニュー一時停止からの再開に使う）
+      elapsedRef.current += performance.now() - start;
     };
-  }, [session.index, goFail]);
+  }, [session.index, goFail, menuOpen]);
 
   const choose = (c: string) => {
     if (selected || answeredRef.current) return;

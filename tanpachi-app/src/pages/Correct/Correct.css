@@ -589,13 +589,16 @@
   color: #06202a;
 }
 
-/* 大当たり（+500 / +1000）は金色でさらに派手に */
+/* 大当たり（+500 / +1000）は金色でさらに派手に。
+   出現は .show が付いたとき（＝演出の残り時間が半分になってから）だけにする。 */
 .correct-midbonus.big {
-  opacity: 1;
   background: linear-gradient(90deg, #ffe08a, #ffb02e, #ff5a6e, #ffb02e, #ffe08a);
   background-size: 300% 100%;
   border-width: 3px;
   box-shadow: 0 0 34px rgba(255, 190, 60, 1), 0 0 14px rgba(255, 255, 255, 0.9);
+}
+
+.correct-midbonus.big.show {
   animation:
     bonus-reveal 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
     bonus-glow 0.5s ease-in-out 0.7s infinite,
@@ -992,4 +995,68 @@
   .correct-plus .plus {
     animation-iteration-count: 1 !important;
   }
+}
+
+/* ---------- 確変・大当たり時にHUDが縦に収まるよう圧縮 ---------- */
+/* 確変バッジ + 大きい中間ボーナスが重なると所持玉が画面下に見切れるため、
+   そうした「盛りだくさん」なときだけ各要素を小さく・間隔を詰める。 */
+.correct-body.hud-tight {
+  gap: 2px;
+  padding: 10px 18px 12px;
+}
+
+.correct-body.hud-tight .correct-kakuhen-badge {
+  font-size: 30px;
+  padding: 2px 18px;
+  margin-bottom: 0;
+  border-width: 2px;
+}
+
+.correct-body.hud-tight .correct-title,
+.correct-body.hud-tight .correct-title.brush {
+  font-size: 62px;
+}
+
+.correct-body.hud-tight .correct-ball-wrap {
+  width: 90px;
+  height: 90px;
+  margin-top: 0;
+}
+
+.correct-body.hud-tight .correct-ball {
+  width: 72px;
+  height: 72px;
+}
+
+.correct-body.hud-tight .correct-plus .plus {
+  font-size: 62px;
+}
+
+.correct-body.hud-tight .correct-plus .unit {
+  font-size: 34px;
+}
+
+.correct-body.hud-tight .correct-bonus {
+  margin-top: 2px;
+  padding: 4px 16px;
+}
+
+.correct-body.hud-tight .correct-bonus .bonus-num {
+  font-size: 36px;
+}
+
+.correct-body.hud-tight .correct-midbonus.big .bonus-num {
+  font-size: 44px;
+}
+
+.correct-body.hud-tight .correct-balance {
+  margin-top: 8px;
+  padding: 8px 14px 10px;
+  flex-shrink: 0;
+}
+
+/* 確変バッジ・中間ボーナスが同時に出ても所持玉が必ず収まるよう、
+   伸縮する余白側（タイトル上）を詰めて balance を固定表示する */
+.correct-body.hud-tight .correct-title-wrap {
+  flex-shrink: 0;
 }

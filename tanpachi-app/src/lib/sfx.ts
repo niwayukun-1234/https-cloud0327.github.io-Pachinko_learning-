@@ -1,4 +1,5 @@
 import { getSettings } from "./settings";
+import kakuhenBgmSrc from "../assets/kakuhen-bgm.mp3";
 
 // 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
 let currentSfx: HTMLAudioElement | null = null;
@@ -155,4 +156,33 @@ export function playMiss(): void {
   sub.connect(subGain).connect(master);
   sub.start(t0);
   sub.stop(t0 + 1.8);
+}
+
+/* ---------- 確変中のBGM（添付音声をループ再生） ---------- */
+
+let bgm: HTMLAudioElement | null = null;
+
+/**
+ * 確変中のBGMをループ再生する。
+ * 設定で「演出の音」がオフのときは鳴らさない（既に再生中なら何もしない）。
+ */
+export function startKakuhenBgm(): void {
+  if (!getSettings().sound) return;
+  if (!bgm) {
+    bgm = new Audio(kakuhenBgmSrc);
+    bgm.loop = true;
+    bgm.volume = 0.75;
+  }
+  if (bgm.paused) {
+    void bgm.play().catch(() => {
+      /* 自動再生がブロックされた環境では無視 */
+    });
+  }
+}
+
+/** 確変BGMを停止する（確変が終わったとき・画面を離れるときに呼ぶ） */
+export function stopKakuhenBgm(): void {
+  if (!bgm) return;
+  bgm.pause();
+  bgm.currentTime = 0;
 }

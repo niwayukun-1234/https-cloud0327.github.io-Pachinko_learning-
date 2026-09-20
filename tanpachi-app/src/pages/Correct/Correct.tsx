@@ -6,7 +6,7 @@ import { useApp } from "../../store/AppContext";
 import correctSfx from "../../assets/correct.mp3";
 import kakuhenSfx from "../../assets/kakuhen.mp3";
 import tripleSfx from "../../assets/triple.mp3";
-import { playBonus, playSfx, stopSfx } from "../../lib/sfx";
+import { playBonus, playSfx, startKakuhenBgm, stopSfx, stopKakuhenBgm } from "../../lib/sfx";
 import { isBigBonus, midBonusTier } from "../../lib/bonus";
 import { useSettings } from "../../lib/settings";
 import "./Correct.css";
@@ -78,6 +78,9 @@ export function Correct() {
   // 中間ボーナスの玉数が大きいほど演出・音を豪華にするためのレベル(1〜4)
   const midTier = showMid ? midBonusTier(midBonus) : 0;
   const animMs = big ? KAKUHEN_MS : isTriple ? TRIPLE_MS : HOLD_MS;
+  // 確変バッジ + 中間ボーナスが重なる長い演出では、所持玉が下に見切れやすい。
+  // そのときだけ HUD を縦に圧縮する（.correct-body.hud-tight）。
+  const hudTight = longAnim;
 
   // この問題に入る前の所持玉（報酬・中間ボーナスを差し引いて求める）
   const startBalls = state.balls - reward - midBonus;
@@ -147,6 +150,13 @@ export function Correct() {
     if (!showMid || !midRevealed) return;
     playBonus(midTier);
   }, [showMid, midRevealed, midTier]);
+
+  // 確変中は添付BGMを流し続ける（1回目は専用BGMがあるので鳴らさない）
+  useEffect(() => {
+    if (kakuhen && sound && !kakuhenFirst) startKakuhenBgm();
+    else stopKakuhenBgm();
+    return () => stopKakuhenBgm();
+  }, [kakuhen, kakuhenFirst, sound]);
 
   // 正解効果音を再生。StrictMode の二重実行でも一度だけ鳴らす。
   useEffect(() => {
@@ -351,7 +361,7 @@ export function Correct() {
         ))}
       </div>
 
-      <div className="correct-body">
+      <div className={`correct-body${hudTight ? " hud-tight" : ""}`}>
         {big && <div className="correct-kakuhen-badge">確変!</div>}
         {!big && combo >= 2 && (
           <div className={`correct-combo tier-${tier}`}>
