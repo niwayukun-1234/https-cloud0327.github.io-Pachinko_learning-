@@ -4,6 +4,61 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #070308;
+}
+
+.welcome-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.welcome-bg-layer {
+  position: absolute;
+  inset: -8%;
+  background-size: cover;
+  background-position: center 42%;
+  transform-origin: 50% 48%;
+  will-change: transform, opacity;
+  animation: welcome-aisle 5.2s linear infinite;
+}
+
+.welcome-bg-layer-b {
+  animation-delay: -2.6s;
+}
+
+.welcome-lights {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 12% 45%, rgba(214, 26, 43, 0.16), transparent 36%),
+    radial-gradient(ellipse at 88% 48%, rgba(245, 197, 66, 0.1), transparent 34%);
+}
+
+.welcome-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, transparent 18%, transparent 62%, rgba(0, 0, 0, 0.72) 100%),
+    radial-gradient(ellipse at 50% 42%, transparent 28%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.welcome-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.welcome-spark {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffe9a8;
+  box-shadow: 0 0 8px 2px rgba(245, 197, 66, 0.85);
+  animation: welcome-twinkle 2.8s ease-in-out infinite;
+  opacity: 0;
 }
 
 .welcome-content {
@@ -14,28 +69,29 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 28px 36px;
-  gap: 18px;
+  padding: 18px 22px 28px;
+  gap: 10px;
   text-align: center;
 }
 
-.welcome-fuji {
-  width: 160px;
-  height: 90px;
-  background: linear-gradient(180deg, #ffe8ea 0 20%, #c8102e 20% 55%, #5a0a14 100%);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  opacity: 0.85;
-  margin-bottom: -40px;
-  filter: drop-shadow(0 0 20px rgba(214, 26, 43, 0.6));
+.welcome-logo {
+  width: min(92%, 340px);
+  height: auto;
+  margin-top: 6px;
+  mix-blend-mode: screen;
+  animation: welcome-pop-logo 0.9s cubic-bezier(0.2, 0.9, 0.28, 1.15) 0.15s both;
 }
 
 .welcome-tagline {
+  font-family: var(--font-brush);
   font-size: 22px;
-  margin: 4px 0 0;
+  margin: 0;
   color: #fff;
+  letter-spacing: 0.04em;
   text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.8),
-    0 0 12px rgba(255, 255, 255, 0.3);
+    0 2px 4px rgba(0, 0, 0, 0.85),
+    0 0 14px rgba(255, 255, 255, 0.25);
+  animation: welcome-fade-up 0.7s ease 0.55s both;
 }
 
 .welcome-ball-wrap {
@@ -44,29 +100,38 @@
   height: 140px;
   display: grid;
   place-items: center;
+  overflow: visible;
+  background: none;
+  box-shadow: none;
+  filter: none;
+  animation: welcome-drop-ball 0.85s cubic-bezier(0.2, 0.85, 0.3, 1.2) 0.7s both;
 }
 
-.welcome-ball-wrap::before {
-  content: "";
-  position: absolute;
-  inset: -20px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(245, 197, 66, 0.45), transparent 70%);
-  animation: pulse-glow 2.4s ease-in-out infinite;
+.welcome-ball-wrap::before,
+.welcome-ball-wrap::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  background: none !important;
+  box-shadow: none !important;
 }
 
 .welcome-ball {
-  width: 120px;
-  height: 120px;
-  animation: float 3s ease-in-out infinite;
+  width: 128px;
+  height: auto;
+  filter: none;
+  box-shadow: none;
+  outline: none;
+  animation: float 3s ease-in-out 1.5s infinite;
 }
 
 .welcome-desc {
-  margin: 0;
+  margin: 2px 0 0;
   font-size: 13px;
   line-height: 1.8;
   color: var(--text);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  animation: welcome-fade-up 0.7s ease 1s both;
 }
 
 .welcome-desc .gold-text {
@@ -75,11 +140,12 @@
 }
 
 .welcome-cta {
-  margin-top: 10px;
+  margin-top: 8px;
   max-width: 260px;
   font-size: 20px;
   padding: 16px 20px;
   overflow: hidden;
+  animation: welcome-fade-up 0.7s ease 1.2s both;
 }
 
 .welcome-cta::after {
@@ -89,5 +155,98 @@
   bottom: 0;
   width: 40%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-  animation: shine 2.8s ease-in-out infinite;
+  animation: shine 2.8s ease-in-out 1.6s infinite;
+}
+
+@keyframes welcome-aisle {
+  0% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  7% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.45);
+    opacity: 0;
+  }
+}
+
+@keyframes welcome-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes welcome-pop-logo {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.86);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes welcome-drop-ball {
+  from {
+    opacity: 0;
+    transform: translateY(-90px) scale(0.7);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(10px) scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes welcome-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-bg-layer,
+  .welcome-spark,
+  .welcome-logo,
+  .welcome-tagline,
+  .welcome-ball-wrap,
+  .welcome-ball,
+  .welcome-desc,
+  .welcome-cta,
+  .welcome-cta::after {
+    animation: none !important;
+  }
+
+  .welcome-bg-layer {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  .welcome-bg-layer-b {
+    display: none;
+  }
 }
