@@ -1,6 +1,7 @@
 import { getSettings } from "./settings";
 import kakuhenBgmSrc from "../assets/kakuhen-bgm.mp3";
 import slotBgmSrc from "../assets/slot-bgm.mp3";
+import learnBgmSrc from "../assets/learn-bgm.m4a";
 
 // 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
 let currentSfx: HTMLAudioElement | null = null;
@@ -217,4 +218,32 @@ export function stopSlotBgm(): void {
   if (!slotBgm) return;
   slotBgm.pause();
   slotBgm.currentTime = 0;
+}
+
+/* ---------- 学習（単語の問題）中のBGM（添付音声をループ再生） ---------- */
+
+let learnBgm: HTMLAudioElement | null = null;
+
+/**
+ * 単語の問題を出している間のBGMをループ再生する（既に再生中なら何もしない）。
+ * 設定で「演出の音」がオフのときは鳴らさない。
+ */
+export function startLearnBgm(): void {
+  if (!getSettings().sound) return;
+  if (!learnBgm) {
+    learnBgm = new Audio(learnBgmSrc);
+    learnBgm.loop = true;
+    learnBgm.volume = 0.6;
+  }
+  if (learnBgm.paused) {
+    void learnBgm.play().catch(() => {
+      /* 自動再生がブロックされた環境では無視（最初のタップで再試行する） */
+    });
+  }
+}
+
+/** 一時停止する（正解・不正解の演出中や画面を離れたとき。次の問題では続きから） */
+export function pauseLearnBgm(): void {
+  if (!learnBgm) return;
+  learnBgm.pause();
 }

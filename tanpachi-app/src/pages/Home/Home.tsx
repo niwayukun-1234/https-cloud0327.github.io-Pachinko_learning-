@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Flame, Pachinko, User } from "../../components/Icons";
 import { TabBar } from "../../components/TabBar";
+import { startSlotBgm } from "../../lib/sfx";
 import { accuracy, useApp } from "../../store/AppContext";
 import "./Home.css";
 
@@ -117,7 +118,22 @@ export function Home() {
           </div>
         </section>
 
-        
+        <button
+          className="btn-cta blue home-cta"
+          onClick={() => {
+            // スマホはタップの瞬間に再生しないと音が鳴らないので、ここでBGMを始める
+            startSlotBgm();
+            navigate("/pachinko", { state: { difficulty } });
+          }}
+        >
+          <span className="cta-row">
+            <Pachinko size={28} />
+            <span>
+              サクッと勉強を始める
+              <span className="sub">TOEIC {difficulty}点レベルで出題！</span>
+            </span>
+          </span>
+        </button>
       </div>
       <TabBar />
     </>

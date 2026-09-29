@@ -13,6 +13,7 @@ import { ResultHero } from "./ResultHero";
 import { ResultTime } from "./ResultTime";
 import { ResultUser } from "./ResultUser";
 import { ResultWords } from "./ResultWords";
+import { startSlotBgm } from "../../lib/sfx";
 import "./Result.css";
 
 /** 直近のセッション結果を sessionStorage から読む */
@@ -153,6 +154,7 @@ export function Result() {
       <ResultFooter
         onPlayPachinko={() => {
           clearSession();
+          startSlotBgm();
           navigate("/pachinko", { replace: true });
         }}
         onLearnMore={learnMore}

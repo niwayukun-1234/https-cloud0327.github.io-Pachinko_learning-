@@ -12,6 +12,11 @@
     var(--bg);
 }
 
+/* 画面の縦が短いスマホでも各パーツを縮めず、はみ出た分はスクロールで見せる */
+.home > * {
+  flex-shrink: 0;
+}
+
 /* ---------- Header / user ---------- */
 .home-top {
   display: flex;
@@ -440,6 +445,21 @@
   font-weight: 700;
   opacity: 0.95;
   margin-top: 3px;
+}
+
+/* 幅の狭いスマホではボタンの文字が折り返さないよう少し小さくする */
+@media (max-width: 360px) {
+  .home-cta {
+    padding: 14px 12px;
+  }
+
+  .cta-row {
+    gap: 10px;
+  }
+
+  .cta-row > span {
+    font-size: 19px;
+  }
 }
 
 /* ---------- Animations ---------- */

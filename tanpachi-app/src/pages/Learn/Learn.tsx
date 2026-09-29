@@ -16,7 +16,7 @@ import { speak } from "../../lib/speech";
 import { useApp } from "../../store/AppContext";
 import { rollMidBonus } from "../../lib/bonus";
 import { getSettings, useMenuOpen, useSettings } from "../../lib/settings";
-import { startKakuhenBgm, stopKakuhenBgm } from "../../lib/sfx";
+import { pauseLearnBgm, startKakuhenBgm, startLearnBgm, stopKakuhenBgm } from "../../lib/sfx";
 import type { LearnSessionResult, SessionAnswer } from "../../types";
 import "./Learn.css";
 
@@ -266,6 +266,25 @@ export function Learn() {
     startKakuhenBgm();
     // 画面を離れたら（ホームへ戻る等）BGMを止める
     return () => stopKakuhenBgm();
+  }, [session.kakuhen, sound]);
+
+  // 単語の問題を出している間は添付音声をループ再生（確変中は確変BGMに切り替える）
+  useEffect(() => {
+    if (session.kakuhen || !sound) {
+      pauseLearnBgm();
+      return;
+    }
+    startLearnBgm();
+    // 自動再生がブロックされた環境向けに、最初のタップで再生を再試行する
+    const kick = () => startLearnBgm();
+    window.addEventListener("pointerdown", kick);
+    window.addEventListener("keydown", kick);
+    return () => {
+      window.removeEventListener("pointerdown", kick);
+      window.removeEventListener("keydown", kick);
+      // 正解・不正解の演出や別の画面へ移るときは止める（次の問題では続きから）
+      pauseLearnBgm();
+    };
   }, [session.kakuhen, sound]);
 
   // 制限時間タイマー（6秒）。時間切れで失敗演出へ。
