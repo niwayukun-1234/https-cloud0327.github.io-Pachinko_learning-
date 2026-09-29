@@ -396,8 +396,6 @@
 .home-cta {
   position: relative;
   border-radius: 18px;
-  padding: 16px 20px;
-  align-items: stretch;
   overflow: hidden;
   animation: home-pulse-glow 2.4s ease-in-out infinite;
 }
@@ -420,46 +418,40 @@
   pointer-events: none;
 }
 
-.cta-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  text-align: left;
+.home-cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.home-cta {
+  gap: 4px;
+  padding: 14px 8px;
+}
+
+.cta-label,
+.home-cta .sub {
   position: relative;
   z-index: 1;
 }
 
-.cta-row > span {
+.cta-label {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  font-size: 22px;
+  gap: 5px;
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: 0.02em;
+  white-space: nowrap;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .home-cta .sub {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   opacity: 0.95;
-  margin-top: 3px;
-}
-
-/* 幅の狭いスマホではボタンの文字が折り返さないよう少し小さくする */
-@media (max-width: 360px) {
-  .home-cta {
-    padding: 14px 12px;
-  }
-
-  .cta-row {
-    gap: 10px;
-  }
-
-  .cta-row > span {
-    font-size: 19px;
-  }
+  margin-top: 0;
+  white-space: nowrap;
 }
 
 /* ---------- Animations ---------- */
@@ -493,4 +485,99 @@
     transform: scale(1.12) translateY(-1px);
     opacity: 0.88;
   }
+}
+
+/* =========================================================
+   画面の高さに合わせて縮め、スクロールせずに全部見えるようにする
+   （cqh = ホーム画面の高さの 1%。中身の高さ 714px（PC の枠）で元のサイズ、
+     420px（iPhone SE の Safari など小さいスマホ）で最小サイズになるよう比例させる）
+   ========================================================= */
+.home {
+  container-type: size;
+  gap: 0;
+}
+
+/* 縦がかなり短い画面では上下の余白も詰める */
+@media (max-height: 600px) {
+  .home {
+    padding-top: 6px;
+    padding-bottom: calc(var(--tab-h) + 6px);
+  }
+}
+
+.cta-label > svg {
+  flex-shrink: 0;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.home > * + * {
+  margin-top: clamp(5px, 2.38cqh - 5.0px, 12px);
+}
+
+.home-user .avatar {
+  width: clamp(34px, 4.76cqh + 14.0px, 48px);
+  height: clamp(34px, 4.76cqh + 14.0px, 48px);
+}
+
+.home-user .name {
+  font-size: clamp(14px, 1.02cqh + 9.7px, 17px);
+}
+
+.home-banner {
+  padding: clamp(6px, 4.08cqh - 11.1px, 18px) 16px;
+}
+
+.banner-title {
+  font-size: clamp(20px, 4.76cqh + 0.0px, 34px);
+}
+
+.banner-sub {
+  margin-top: clamp(2px, 2.04cqh - 6.6px, 8px);
+  font-size: clamp(10px, 1.02cqh + 5.7px, 13px);
+}
+
+.home-today {
+  padding: clamp(6px, 2.72cqh - 5.4px, 14px) 18px;
+}
+
+.today-value b {
+  font-size: clamp(24px, 5.44cqh + 1.1px, 40px);
+}
+
+.stat-card {
+  padding: clamp(5px, 3.06cqh - 7.9px, 14px) 8px;
+}
+
+.stat-card .label {
+  margin-bottom: clamp(1px, 1.36cqh - 4.7px, 5px);
+}
+
+.stat-card .value {
+  font-size: clamp(19px, 3.06cqh + 6.1px, 28px);
+}
+
+.home-difficulty {
+  gap: clamp(6px, 2.72cqh - 5.4px, 14px);
+  padding: clamp(6px, 3.40cqh - 8.3px, 16px) 16px clamp(8px, 3.40cqh - 6.3px, 18px);
+}
+
+.difficulty-title {
+  font-size: clamp(14px, 1.02cqh + 9.7px, 17px);
+}
+
+.difficulty-btn {
+  padding: clamp(4px, 3.06cqh - 8.9px, 13px) 2px;
+}
+
+.difficulty-btn b {
+  font-size: clamp(16px, 2.38cqh + 6.0px, 23px);
+}
+
+.home-cta {
+  padding: clamp(6px, 2.72cqh - 5.4px, 14px) 8px;
+}
+
+.cta-label {
+  font-size: clamp(16px, 1.36cqh + 10.3px, 20px);
 }
