@@ -6,20 +6,48 @@ import learnBgmSrc from "../assets/learn-bgm.m4a";
 // https://opentracks.com/bgm/detail/18020
 import idleBgmSrc from "../assets/idle-bgm.mp3";
 
+import correctSfxSrc from "../assets/correct.mp3";
+import tripleSfxSrc from "../assets/triple.mp3";
+import kakuhenSfxSrc from "../assets/kakuhen.mp3";
+
 // 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
 let currentSfx: HTMLAudioElement | null = null;
+
+// 効果音ごとに audio 要素を1つだけ作って使い回す。
+// スマホ（特に iPhone）は「タップで一度再生したことのある要素」しか後から鳴らせないため、
+// 新しく作り直すと、画面が切り替わった後の正解音などが鳴らなくなる。
+const sfxCache = new Map<string, HTMLAudioElement>();
+// 再生を許可された（タップ中に一度再生した）要素
+const unlocked = new WeakSet<HTMLAudioElement>();
+// playSfx で鳴らしている最中の要素（アンロック処理で止めないようにする）
+const wanted = new WeakSet<HTMLAudioElement>();
+
+function getSfx(src: string): HTMLAudioElement {
+  let audio = sfxCache.get(src);
+  if (!audio) {
+    audio = new Audio(src);
+    audio.preload = "auto";
+    audio.addEventListener("ended", () => wanted.delete(audio!));
+    sfxCache.set(src, audio);
+  }
+  return audio;
+}
 
 /** 音源ファイルを再生する（前の音は止めて重ならないようにする） */
 export function playSfx(src: string): HTMLAudioElement {
   if (currentSfx) {
+    wanted.delete(currentSfx);
     currentSfx.pause();
     currentSfx = null;
   }
-  const audio = new Audio(src);
+  const audio = getSfx(src);
+  audio.muted = false;
   audio.volume = 1;
+  audio.currentTime = 0;
   currentSfx = audio;
   // 設定で「演出の音」がオフなら鳴らさない（'ended' は発火せず保険タイマーで進む）
   if (getSettings().sound) {
+    wanted.add(audio);
     void audio.play().catch(() => {
       /* 自動再生がブロックされた環境では無視 */
     });
@@ -30,9 +58,45 @@ export function playSfx(src: string): HTMLAudioElement {
 /** 再生中の演出音を停止する（演出が終わったら呼ぶ） */
 export function stopSfx(): void {
   if (currentSfx) {
+    wanted.delete(currentSfx);
     currentSfx.pause();
     currentSfx.currentTime = 0;
     currentSfx = null;
+  }
+}
+
+/**
+ * タップの瞬間に、後で鳴らす効果音（正解・3連続・確変）と合成音を「再生許可済み」にしておく。
+ * 無音で一瞬だけ再生してすぐ止めるので、聞こえる音は出ない。
+ */
+function unlockSfx(): void {
+  getCtx();
+  for (const src of [correctSfxSrc, tripleSfxSrc, kakuhenSfxSrc]) {
+    const audio = getSfx(src);
+    if (unlocked.has(audio) || !audio.paused) continue;
+    unlocked.add(audio);
+    audio.muted = true;
+    audio
+      .play()
+      .then(() => {
+        // アンロック中に本番の再生が始まっていたら止めない
+        if (!wanted.has(audio)) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+        audio.muted = false;
+      })
+      .catch(() => {
+        audio.muted = false;
+        unlocked.delete(audio);
+      });
+  }
+}
+
+// アプリ全体で、タップ（キー操作）のたびに未許可の効果音を許可しておく
+if (typeof window !== "undefined") {
+  for (const type of ["touchend", "click", "keydown"]) {
+    window.addEventListener(type, unlockSfx, { capture: true, passive: true });
   }
 }
 
