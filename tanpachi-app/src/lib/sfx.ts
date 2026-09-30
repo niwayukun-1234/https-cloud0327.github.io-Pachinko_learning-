@@ -2,6 +2,9 @@ import { getSettings } from "./settings";
 import kakuhenBgmSrc from "../assets/kakuhen-bgm.mp3";
 import slotBgmSrc from "../assets/slot-bgm.mp3";
 import learnBgmSrc from "../assets/learn-bgm.m4a";
+// 「ジャックポット」written by カピバラっ子（OpenTracks／旧DOVA-SYNDROME のフリーBGM）
+// https://opentracks.com/bgm/detail/18020
+import idleBgmSrc from "../assets/idle-bgm.mp3";
 
 // 再生中の効果音を保持。画面遷移後も鳴らし続け、次の音と重ならないようにする。
 let currentSfx: HTMLAudioElement | null = null;
@@ -246,4 +249,32 @@ export function startLearnBgm(): void {
 export function pauseLearnBgm(): void {
   if (!learnBgm) return;
   learnBgm.pause();
+}
+
+/* ---------- 起動時など、ほかに音楽がない画面のBGM（フリーBGMをループ再生） ---------- */
+
+let idleBgm: HTMLAudioElement | null = null;
+
+/**
+ * 音楽がない画面（起動画面・ホーム・図鑑など）のBGMをループ再生する（既に再生中なら何もしない）。
+ * 設定で「演出の音」がオフのときは鳴らさない。
+ */
+export function startIdleBgm(): void {
+  if (!getSettings().sound) return;
+  if (!idleBgm) {
+    idleBgm = new Audio(idleBgmSrc);
+    idleBgm.loop = true;
+    idleBgm.volume = 0.4;
+  }
+  if (idleBgm.paused) {
+    void idleBgm.play().catch(() => {
+      /* 自動再生がブロックされた環境では無視（最初のタップで再試行する） */
+    });
+  }
+}
+
+/** 一時停止する（学習・パチンコなど自前の音楽がある画面へ移るとき。戻ったら続きから） */
+export function pauseIdleBgm(): void {
+  if (!idleBgm) return;
+  idleBgm.pause();
 }

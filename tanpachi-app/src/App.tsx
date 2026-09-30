@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Device } from "./components/Device";
 import { SettingsMenu } from "./components/SettingsMenu";
 import { Welcome } from "./pages/Welcome/Welcome";
@@ -17,9 +17,32 @@ import { MenuPage } from "./pages/MenuPage/MenuPage";
 import { Login } from "./pages/Login/Login";
 import { BallHistory } from "./pages/BallHistory/BallHistory";
 import { useSettings } from "./lib/settings";
+import { pauseIdleBgm, startIdleBgm } from "./lib/sfx";
+
+// 自前の音楽・効果音がある画面（ここ以外ではフリーBGMを流す）
+const HAS_OWN_MUSIC = ["/learn", "/pachinko"];
 
 export default function App() {
-  const { brightness } = useSettings();
+  const { brightness, sound } = useSettings();
+  const { pathname } = useLocation();
+  const idle = !HAS_OWN_MUSIC.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  // 起動時や音楽がない画面ではフリーBGMをループ再生する（学習・パチンコ画面では止める）
+  useEffect(() => {
+    if (!idle || !sound) {
+      pauseIdleBgm();
+      return;
+    }
+    startIdleBgm();
+    // 起動直後はタップするまで音を出せないブラウザが多いので、最初のタップで再生し直す
+    const kick = () => startIdleBgm();
+    window.addEventListener("pointerdown", kick);
+    window.addEventListener("keydown", kick);
+    return () => {
+      window.removeEventListener("pointerdown", kick);
+      window.removeEventListener("keydown", kick);
+    };
+  }, [idle, sound]);
 
   // 明るさ設定をアプリ全体に反映（CSS 変数 + filter）
   useEffect(() => {
