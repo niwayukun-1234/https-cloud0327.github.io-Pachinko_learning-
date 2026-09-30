@@ -203,6 +203,28 @@ export function Correct() {
     };
   }, [holdUntilSoundEnds, big, sound, animMs, next]);
 
+  // 画面の縦が短いスマホでも見切れないよう、中身が入りきらないときは全体を縮めて表示する
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const fitRef = useRef<HTMLDivElement>(null);
+  const [fitScale, setFitScale] = useState(1);
+  useEffect(() => {
+    const body = bodyRef.current;
+    const fit = fitRef.current;
+    if (!body || !fit) return;
+    const update = () => {
+      const cs = getComputedStyle(body);
+      const avail = body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const natural = fit.offsetHeight;
+      setFitScale(natural > 0 ? Math.min(1, avail / natural) : 1);
+    };
+    update();
+    // ボーナスの出現などで中身の高さが変わったとき・画面サイズが変わったときに測り直す
+    const ro = new ResizeObserver(update);
+    ro.observe(body);
+    ro.observe(fit);
+    return () => ro.disconnect();
+  }, []);
+
   // コンボ/確変が進むほど演出がどんどん豪華になる
   const intensity = useMemo(
     () => ({
@@ -361,7 +383,8 @@ export function Correct() {
         ))}
       </div>
 
-      <div className={`correct-body${hudTight ? " hud-tight" : ""}`}>
+      <div ref={bodyRef} className={`correct-body${hudTight ? " hud-tight" : ""}`}>
+        <div ref={fitRef} className="correct-fit" style={{ transform: fitScale < 1 ? `scale(${fitScale})` : undefined }}>
         {big && <div className="correct-kakuhen-badge">確変!</div>}
         {!big && combo >= 2 && (
           <div className={`correct-combo tier-${tier}`}>
@@ -415,9 +438,7 @@ export function Correct() {
           <BallCounter value={displayed} size="md" delta={reward} />
         </section>
 
-        <button className="btn-cta correct-next fade-up" style={{ animationDelay: "0.45s" }} onClick={next}>
-          {finished ? "結果を見る" : "次の問題へ"}
-        </button>
+        </div>
       </div>
     </div>
   );

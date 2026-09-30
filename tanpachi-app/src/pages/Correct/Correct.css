@@ -342,6 +342,19 @@
   justify-content: center;
   padding: 20px 22px 26px;
   gap: 8px;
+  /* 中身に合わせて伸びず、画面の高さに収める（入りきらない分は下の .correct-fit を縮める） */
+  min-height: 0;
+}
+
+/* 中身をまとめる箱。入りきらないときは Correct.tsx で中央を基準に縮める */
+.correct-fit {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: inherit;
+  flex-shrink: 0;
+  transform-origin: center center;
 }
 
 .correct-title-wrap {
