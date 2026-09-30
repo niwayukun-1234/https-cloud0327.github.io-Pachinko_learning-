@@ -227,6 +227,79 @@ export function playMiss(): void {
   sub.stop(t0 + 1.8);
 }
 
+/* ---------- この画面を開いていないとき（別タブ・別アプリ・別ウィンドウ）は音楽を止める ---------- */
+
+// 画面を離れたときに止めたBGM。戻ってきたら続きから再開する。
+const heldBgms = new Set<HTMLAudioElement>();
+
+// 別のウィンドウやアプリに切り替えた（ウィンドウのフォーカスが外れた）状態か
+let windowBlurred = false;
+
+/** この画面が前面に出ていて、操作できる状態か */
+function isForeground(): boolean {
+  return document.visibilityState === "visible" && !windowBlurred;
+}
+
+/** BGMを再生する。画面を離れている間は鳴らさず、戻ったときに再生する */
+function playBgm(audio: HTMLAudioElement): void {
+  if (!isForeground()) {
+    heldBgms.add(audio);
+    return;
+  }
+  heldBgms.delete(audio);
+  if (audio.paused) {
+    void audio.play().catch(() => {
+      /* 自動再生がブロックされた環境では無視（最初のタップで再試行する） */
+    });
+  }
+}
+
+/** BGMを止める（画面側から止めたものは、戻ってきても再開しない） */
+function pauseBgm(audio: HTMLAudioElement): void {
+  heldBgms.delete(audio);
+  audio.pause();
+}
+
+function holdAllBgm(): void {
+  for (const audio of [bgm, slotBgm, learnBgm, idleBgm]) {
+    if (audio && !audio.paused) {
+      audio.pause();
+      heldBgms.add(audio);
+    }
+  }
+}
+
+function resumeHeldBgm(): void {
+  if (!isForeground()) return;
+  const list = [...heldBgms];
+  heldBgms.clear();
+  // 離れている間に「演出の音」がオフにされていたら再開しない
+  if (!getSettings().sound) return;
+  for (const audio of list) playBgm(audio);
+}
+
+if (typeof window !== "undefined") {
+  const sync = () => (isForeground() ? resumeHeldBgm() : holdAllBgm());
+  document.addEventListener("visibilitychange", sync);
+  window.addEventListener("blur", () => {
+    windowBlurred = true;
+    sync();
+  });
+  // 画面をタップしたときも「戻ってきた」とみなす（focus が来ない環境向け）
+  for (const type of ["focus", "pointerdown", "keydown"]) {
+    window.addEventListener(
+      type,
+      () => {
+        windowBlurred = false;
+        sync();
+      },
+      { capture: true },
+    );
+  }
+  window.addEventListener("pagehide", holdAllBgm);
+  window.addEventListener("pageshow", sync);
+}
+
 /* ---------- 確変中のBGM（添付音声をループ再生） ---------- */
 
 let bgm: HTMLAudioElement | null = null;
@@ -242,17 +315,13 @@ export function startKakuhenBgm(): void {
     bgm.loop = true;
     bgm.volume = 0.75;
   }
-  if (bgm.paused) {
-    void bgm.play().catch(() => {
-      /* 自動再生がブロックされた環境では無視 */
-    });
-  }
+  playBgm(bgm);
 }
 
 /** 確変BGMを停止する（確変が終わったとき・画面を離れるときに呼ぶ） */
 export function stopKakuhenBgm(): void {
   if (!bgm) return;
-  bgm.pause();
+  pauseBgm(bgm);
   bgm.currentTime = 0;
 }
 
@@ -267,23 +336,19 @@ export function startSlotBgm(): void {
     slotBgm.loop = true;
     slotBgm.volume = 0.45;
   }
-  if (slotBgm.paused) {
-    void slotBgm.play().catch(() => {
-      /* 自動再生がブロックされた環境では無視（最初のタップで再試行する） */
-    });
-  }
+  playBgm(slotBgm);
 }
 
 /** 一時停止する（タブが非表示になったとき等。次に再開したときは続きから） */
 export function pauseSlotBgm(): void {
   if (!slotBgm) return;
-  slotBgm.pause();
+  pauseBgm(slotBgm);
 }
 
 /** 停止して先頭に戻す（音声OFFにしたとき・画面を離れるときに呼ぶ） */
 export function stopSlotBgm(): void {
   if (!slotBgm) return;
-  slotBgm.pause();
+  pauseBgm(slotBgm);
   slotBgm.currentTime = 0;
 }
 
@@ -302,17 +367,13 @@ export function startLearnBgm(): void {
     learnBgm.loop = true;
     learnBgm.volume = 0.6;
   }
-  if (learnBgm.paused) {
-    void learnBgm.play().catch(() => {
-      /* 自動再生がブロックされた環境では無視（最初のタップで再試行する） */
-    });
-  }
+  playBgm(learnBgm);
 }
 
 /** 一時停止する（正解・不正解の演出中や画面を離れたとき。次の問題では続きから） */
 export function pauseLearnBgm(): void {
   if (!learnBgm) return;
-  learnBgm.pause();
+  pauseBgm(learnBgm);
 }
 
 /* ---------- 起動時など、ほかに音楽がない画面のBGM（フリーBGMをループ再生） ---------- */
@@ -330,15 +391,11 @@ export function startIdleBgm(): void {
     idleBgm.loop = true;
     idleBgm.volume = 0.4;
   }
-  if (idleBgm.paused) {
-    void idleBgm.play().catch(() => {
-      /* 自動再生がブロックされた環境では無視（最初のタップで再試行する） */
-    });
-  }
+  playBgm(idleBgm);
 }
 
 /** 一時停止する（学習・パチンコなど自前の音楽がある画面へ移るとき。戻ったら続きから） */
 export function pauseIdleBgm(): void {
   if (!idleBgm) return;
-  idleBgm.pause();
+  pauseBgm(idleBgm);
 }
